@@ -24,9 +24,9 @@
 #define STATUS_SERVER_VERSION "1.2"
 #define STATUS_SERVER_DEVELOPERS "Mark Samman"
 
-#define CLIENT_VERSION_MIN 1031
-#define CLIENT_VERSION_MAX 1031
-#define CLIENT_VERSION_STR "10.31"
+#define CLIENT_VERSION_MIN 1010
+#define CLIENT_VERSION_MAX 1010
+#define CLIENT_VERSION_STR "10.10"
 
 #ifndef __FUNCTION__
 #define __FUNCTION__ __func__
@@ -36,7 +36,12 @@
 #define _USE_MATH_DEFINES
 #endif
 
+#include <cassert>
 #include <cmath>
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <chrono>
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -70,5 +75,7 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+typedef std::vector< std::pair<uint32_t, uint32_t> > IPList;
 
 #endif

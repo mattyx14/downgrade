@@ -30,9 +30,11 @@
 #include "tools.h"
 #include "iologindata.h"
 #include "ban.h"
+#include <iomanip>
 #include "game.h"
 
 extern ConfigManager g_config;
+extern IPList serverIPs;
 extern Game g_game;
 
 void ProtocolLogin::disconnectClient(const std::string& message)
@@ -49,6 +51,14 @@ void ProtocolLogin::disconnectClient(const std::string& message)
 
 void ProtocolLogin::getCharacterList(const std::string& accountName, const std::string& password)
 {
+	uint32_t serverip = serverIPs[0].first;
+	for (uint32_t i = 0; i < serverIPs.size(); i++) {
+		if ((serverIPs[i].first & serverIPs[i].second) == (getConnection()->getIP() & serverIPs[i].second)) {
+			serverip = serverIPs[i].first;
+			break;
+		}
+	}
+
 	Account account;
 	if (!IOLoginData::loginserverAuthentication(accountName, password, account)) {
 		disconnectClient("Account name or password is not correct.");
@@ -70,19 +80,13 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
 		//Add char list
 		output->addByte(0x64);
 
-		output->addByte(1); // number of worlds
-
-		output->addByte(0); // world id
-		output->addString(g_config.getString(ConfigManager::SERVER_NAME));
-		output->addString(g_config.getString(ConfigManager::IP));
-		output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
-		output->addByte(0);
-
-		uint8_t size = std::min<size_t>(std::numeric_limits<uint8_t>::max(), account.characters.size());
-		output->addByte(size);
-		for (uint8_t i = 0; i < size; i++) {
-			output->addByte(0);
-			output->addString(account.characters[i]);
+		output->addByte((uint8_t)account.characters.size());
+		for (const std::string& characterName : account.characters) {
+			output->addString(characterName);
+			output->addString(g_config.getString(ConfigManager::SERVER_NAME));
+			output->add<uint32_t>(serverip);
+			output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
+			output->addByte(0x00);
 		}
 
 		//Add premium days
