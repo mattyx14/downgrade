@@ -24,9 +24,9 @@
 #define STATUS_SERVER_VERSION "1.2"
 #define STATUS_SERVER_DEVELOPERS "Mark Samman"
 
-#define CLIENT_VERSION_MIN 1010
-#define CLIENT_VERSION_MAX 1010
-#define CLIENT_VERSION_STR "10.10"
+#define CLIENT_VERSION_MIN 978
+#define CLIENT_VERSION_MAX 978
+#define CLIENT_VERSION_STR "9.86"
 
 #ifndef __FUNCTION__
 #define __FUNCTION__ __func__
@@ -61,6 +61,7 @@
 #pragma warning(disable:4250) // 'class1' : inherits 'class2::member' via dominance
 #pragma warning(disable:4267) // 'var' : conversion from 'size_t' to 'type', possible loss of data
 #pragma warning(disable:4351) // new behavior: elements of array will be default initialized
+#pragma warning(disable:4996)
 #endif
 
 #define strcasecmp _stricmp
