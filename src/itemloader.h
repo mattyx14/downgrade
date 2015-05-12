@@ -101,7 +101,6 @@ enum clientVersion_t {
 	CLIENT_VERSION_1030 = 53,
 	CLIENT_VERSION_1031 = 54,
 	CLIENT_VERSION_1035 = 55,
-	CLIENT_VERSION_1076 = 56,
 };
 
 enum rootattrib_ {

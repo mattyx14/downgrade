@@ -39,7 +39,7 @@ void ProtocolLogin::disconnectClient(const std::string& message, uint16_t versio
 {
 	OutputMessage_ptr output = OutputMessagePool::getInstance()->getOutputMessage(this, false);
 	if (output) {
-		output->addByte(version >= 1076 ? 0x0B : 0x0A);
+		output->addByte(0x0A);
 		output->addString(message);
 		OutputMessagePool::getInstance()->send(output);
 	}
@@ -66,10 +66,6 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
 		std::ostringstream ss;
 		ss << g_game.getMotdNum() << "\n" << g_config.getString(ConfigManager::MOTD);
 		output->addString(ss.str());
-
-		//Add session key
-		output->addByte(0x28);
-		output->addString(accountName + "\n" + password);
 
 		//Add char list
 		output->addByte(0x64);
@@ -109,19 +105,21 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 		return;
 	}
 
-	msg.skipBytes(2); // client OS
-
+	/*uint16_t clientos = */
+	msg.get<uint16_t>();
 	uint16_t version = msg.get<uint16_t>();
+
 	if (version >= 971) {
 		msg.skipBytes(17);
 	} else {
 		msg.skipBytes(12);
 	}
+
 	/*
 	 * Skipped bytes:
-	 * 4 bytes: protocolVersion
+	 * 4 bytes: protocolVersion (only 971+)
 	 * 12 bytes: dat, spr, pic signatures (4 bytes each)
-	 * 1 byte: 0
+	 * 1 byte: 0 (only 971+)
 	 */
 
 #define dispatchDisconnectClient(err) g_dispatcher.addTask(createTask(std::bind(&ProtocolLogin::disconnectClient, this, err, version)))
@@ -143,6 +141,9 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	key[3] = msg.get<uint32_t>();
 	enableXTEAEncryption();
 	setXTEAKey(key);
+
+	std::string accountName = msg.getString();
+	std::string password = msg.getString();
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
 		dispatchDisconnectClient("Only clients with protocol " CLIENT_VERSION_STR " allowed!");
@@ -171,7 +172,6 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 		return;
 	}
 
-	std::string accountName = msg.getString();
 	if (accountName.empty()) {
 		dispatchDisconnectClient("Invalid account name.");
 		return;
@@ -179,6 +179,5 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 #undef dispatchDisconnectClient
 
-	std::string password = msg.getString();
 	g_dispatcher.addTask(createTask(std::bind(&ProtocolLogin::getCharacterList, this, accountName, password, version)));
 }
