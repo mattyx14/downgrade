@@ -1096,11 +1096,6 @@ class Player final : public Creature, public Cylinder
 				client->sendQuestLine(quest);
 			}
 		}
-		void sendEnterWorld() {
-			if (client) {
-				client->sendEnterWorld();
-			}
-		}
 		void sendFightModes() {
 			if (client) {
 				client->sendFightModes();

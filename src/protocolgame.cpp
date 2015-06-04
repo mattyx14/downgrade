@@ -294,8 +294,6 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	OperatingSystem_t operatingSystem = static_cast<OperatingSystem_t>(msg.get<uint16_t>());
 	version = msg.get<uint16_t>();
 
-	msg.skipBytes(5); // U32 client version, U8 client type, U16 dat revision
-
 	if (!Protocol::RSA_decrypt(msg)) {
 		getConnection()->close();
 		return;
@@ -1244,25 +1242,21 @@ void ProtocolGame::sendCreatureSkull(const Creature* creature)
 }
 
 void ProtocolGame::sendCreatureType(uint32_t creatureId, uint8_t creatureType)
-{
-	return;
-
+{/*
 	NetworkMessage msg;
 	msg.addByte(0x95);
 	msg.add<uint32_t>(creatureId);
 	msg.addByte(creatureType);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg);*/
 }
 
 void ProtocolGame::sendCreatureHelpers(uint32_t creatureId, uint16_t helpers)
-{
-	return;
-
+{/*
 	NetworkMessage msg;
 	msg.addByte(0x94);
 	msg.add<uint32_t>(creatureId);
 	msg.add<uint16_t>(helpers);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg);*/
 }
 
 void ProtocolGame::sendCreatureSquare(const Creature* creature, SquareColor_t color)
@@ -2176,7 +2170,7 @@ void ProtocolGame::sendChangeSpeed(const Creature* creature, uint32_t speed)
 	NetworkMessage msg;
 	msg.addByte(0x8F);
 	msg.add<uint32_t>(creature->getID());
-	msg.add<uint16_t>(speed / 2);
+	msg.add<uint16_t>(speed);
 	writeToOutputBuffer(msg);
 }
 
@@ -2325,20 +2319,6 @@ void ProtocolGame::sendUpdateTile(const Tile* tile, const Position& pos)
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendPendingStateEntered()
-{
-	NetworkMessage msg;
-	msg.addByte(0x0A);
-	writeToOutputBuffer(msg);
-}
-
-void ProtocolGame::sendEnterWorld()
-{
-	NetworkMessage msg;
-	msg.addByte(0x0F);
-	writeToOutputBuffer(msg);
-}
-
 void ProtocolGame::sendFightModes()
 {
 	NetworkMessage msg;
@@ -2377,14 +2357,10 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 	}
 
 	NetworkMessage msg;
-	msg.addByte(0x17);
+	msg.addByte(0x0A);
 
 	msg.add<uint32_t>(player->getID());
 	msg.add<uint16_t>(0x32); // beat duration (50)
-
-	msg.addDouble(Creature::speedA, 3);
-	msg.addDouble(Creature::speedB, 3);
-	msg.addDouble(Creature::speedC, 3);
 
 	// can report bugs?
 	if (player->getAccountType() >= ACCOUNT_TYPE_TUTOR) {
@@ -2395,8 +2371,6 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 
 	writeToOutputBuffer(msg);
 
-	sendPendingStateEntered();
-	sendEnterWorld();
 	sendMapDescription(pos);
 
 	if (isLogin) {
@@ -2788,7 +2762,7 @@ void ProtocolGame::AddCreature(NetworkMessage& msg, const Creature* creature, bo
 	msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
 	msg.addByte(lightInfo.color);
 
-	msg.add<uint16_t>(creature->getStepSpeed() / 2);
+	msg.add<uint16_t>(creature->getStepSpeed());
 
 	msg.addByte(player->getSkullClient(otherPlayer));
 	msg.addByte(player->getPartyShield(otherPlayer));
@@ -2826,7 +2800,7 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 
 	msg.add<uint16_t>(player->getStaminaMinutes());
 
-	msg.add<uint16_t>(player->getBaseSpeed() / 2);
+	msg.add<uint16_t>(player->getBaseSpeed());
 
 	Condition* condition = player->getCondition(CONDITION_REGENERATION);
 	msg.add<uint16_t>(condition ? condition->getTicks() / 1000 : 0x00);
