@@ -354,8 +354,6 @@ class Game
 		void playerUpdateContainer(uint32_t playerId, uint8_t cid);
 		void playerRotateItem(uint32_t playerId, const Position& pos, uint8_t stackPos, const uint16_t spriteId);
 		void playerWriteItem(uint32_t playerId, uint32_t windowTextId, const std::string& text);
-		void playerBrowseField(uint32_t playerId, const Position& pos);
-		void playerSeekInContainer(uint32_t playerId, uint8_t containerId, uint16_t index);
 		void playerUpdateHouseWindow(uint32_t playerId, uint8_t listId, uint32_t windowTextId, const std::string& text);
 		void playerRequestTrade(uint32_t playerId, const Position& pos, uint8_t stackPos,
 		                        uint32_t tradePlayerId, uint16_t spriteId);
@@ -484,9 +482,6 @@ class Game
 
 		Guild* getGuild(uint32_t id) const;
 		void addGuild(Guild* guild);
-		void decreaseBrowseFieldRef(const Position& pos);
-
-		std::unordered_map<Tile*, Container*> browseFields;
 
 		void internalRemoveItems(std::vector<Item*> itemList, uint32_t amount, bool stackable);
 

@@ -322,21 +322,6 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 			return nullptr;
 		}
 
-		if (parentContainer->getID() == ITEM_BROWSEFIELD) {
-			Tile* tile = parentContainer->getTile();
-			if (tile && tile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
-				if (tile->hasProperty(CONST_PROP_ISVERTICAL)) {
-					if (player->getPosition().x + 1 == tile->getPosition().x) {
-						return nullptr;
-					}
-				} else { // horizontal
-					if (player->getPosition().y + 1 == tile->getPosition().y) {
-						return nullptr;
-					}
-				}
-			}
-		}
-
 		uint8_t slot = pos.z;
 		return parentContainer->getItemByIndex(player->getContainerIndex(fromCid) + slot);
 	} else if (pos.y == 0 && pos.z == 0) {
@@ -1058,14 +1043,6 @@ void Game::playerMoveItem(Player* player, const Position& fromPos,
 ReturnValue Game::internalMoveItem(Cylinder* fromCylinder, Cylinder* toCylinder, int32_t index,
                                    Item* item, uint32_t count, Item** _moveItem, uint32_t flags /*= 0*/, Creature* actor/* = nullptr*/, Item* tradeItem/* = nullptr*/)
 {
-	Tile* fromTile = fromCylinder->getTile();
-	if (fromTile) {
-		auto it = browseFields.find(fromTile);
-		if (it != browseFields.end() && it->second == fromCylinder) {
-			fromCylinder = fromTile;
-		}
-	}
-
 	Item* toItem = nullptr;
 
 	Cylinder* subCylinder;
@@ -1321,14 +1298,6 @@ ReturnValue Game::internalRemoveItem(Item* item, int32_t count /*= -1*/, bool te
 		return RETURNVALUE_NOTPOSSIBLE;
 	}
 
-	Tile* fromTile = cylinder->getTile();
-	if (fromTile) {
-		auto it = browseFields.find(fromTile);
-		if (it != browseFields.end() && it->second == cylinder) {
-			cylinder = fromTile;
-		}
-	}
-
 	if (count == -1) {
 		count = item->getItemCount();
 	}
@@ -1553,14 +1522,6 @@ Item* Game::transformItem(Item* item, uint16_t newId, int32_t newCount /*= -1*/)
 	Cylinder* cylinder = item->getParent();
 	if (cylinder == nullptr) {
 		return nullptr;
-	}
-
-	Tile* fromTile = cylinder->getTile();
-	if (fromTile) {
-		auto it = browseFields.find(fromTile);
-		if (it != browseFields.end() && it->second == cylinder) {
-			cylinder = fromTile;
-		}
 	}
 
 	int32_t itemIndex = cylinder->getThingIndex(item);
@@ -2182,20 +2143,10 @@ void Game::playerMoveUpContainer(uint32_t playerId, uint8_t cid)
 		if (!tile) {
 			return;
 		}
-
-		auto it = browseFields.find(tile);
-		if (it == browseFields.end()) {
-			parentContainer = new Container(tile);
-			parentContainer->incrementReferenceCounter();
-			browseFields[tile] = parentContainer;
-			g_scheduler.addEvent(createSchedulerTask(30000, std::bind(&Game::decreaseBrowseFieldRef, this, tile->getPosition())));
-		} else {
-			parentContainer = it->second;
-		}
 	}
 
 	player->addContainer(cid, parentContainer);
-	player->sendContainer(cid, parentContainer, parentContainer->hasParent(), player->getContainerIndex(cid));
+	player->sendContainer(cid, parentContainer, (dynamic_cast<const Container*>(parentContainer->getParent()) != nullptr), player->getContainerIndex(cid));
 }
 
 void Game::playerUpdateContainer(uint32_t playerId, uint8_t cid)
@@ -2210,7 +2161,7 @@ void Game::playerUpdateContainer(uint32_t playerId, uint8_t cid)
 		return;
 	}
 
-	player->sendContainer(cid, container, container->hasParent(), player->getContainerIndex(cid));
+	player->sendContainer(cid, container, (dynamic_cast<const Container*>(container->getParent()) != nullptr), player->getContainerIndex(cid));
 }
 
 void Game::playerRotateItem(uint32_t playerId, const Position& pos, uint8_t stackPos, const uint16_t spriteId)
@@ -2310,86 +2261,6 @@ void Game::playerWriteItem(uint32_t playerId, uint32_t windowTextId, const std::
 	}
 
 	player->setWriteItem(nullptr);
-}
-
-void Game::playerBrowseField(uint32_t playerId, const Position& pos)
-{
-	Player* player = getPlayerByID(playerId);
-	if (!player) {
-		return;
-	}
-
-	const Position& playerPos = player->getPosition();
-	if (playerPos.z != pos.z) {
-		player->sendCancelMessage(playerPos.z > pos.z ? RETURNVALUE_FIRSTGOUPSTAIRS : RETURNVALUE_FIRSTGODOWNSTAIRS);
-		return;
-	}
-
-	if (!Position::areInRange<1, 1>(playerPos, pos)) {
-		std::forward_list<Direction> listDir;
-		if (player->getPathTo(pos, listDir, 0, 1, true, true)) {
-			g_dispatcher.addTask(createTask(std::bind(&Game::playerAutoWalk,
-			                                this, player->getID(), listDir)));
-			SchedulerTask* task = createSchedulerTask(400, std::bind(
-			                          &Game::playerBrowseField, this, playerId, pos
-			                      ));
-			player->setNextWalkActionTask(task);
-		} else {
-			player->sendCancelMessage(RETURNVALUE_THEREISNOWAY);
-		}
-		return;
-	}
-
-	Tile* tile = map.getTile(pos);
-	if (!tile) {
-		return;
-	}
-
-	if (!g_events->eventPlayerOnBrowseField(player, pos)) {
-		return;
-	}
-
-	Container* container;
-
-	auto it = browseFields.find(tile);
-	if (it == browseFields.end()) {
-		container = new Container(tile);
-		container->incrementReferenceCounter();
-		browseFields[tile] = container;
-		g_scheduler.addEvent(createSchedulerTask(30000, std::bind(&Game::decreaseBrowseFieldRef, this, tile->getPosition())));
-	} else {
-		container = it->second;
-	}
-
-	uint8_t dummyContainerId = 0xF - ((pos.x % 3) * 3 + (pos.y % 3));
-	Container* openContainer = player->getContainerByID(dummyContainerId);
-	if (openContainer) {
-		player->onCloseContainer(openContainer);
-		player->closeContainer(dummyContainerId);
-	} else {
-		player->addContainer(dummyContainerId, container);
-		player->sendContainer(dummyContainerId, container, false, 0);
-	}
-}
-
-void Game::playerSeekInContainer(uint32_t playerId, uint8_t containerId, uint16_t index)
-{
-	Player* player = getPlayerByID(playerId);
-	if (!player) {
-		return;
-	}
-
-	Container* container = player->getContainerByID(containerId);
-	if (!container || !container->hasPagination()) {
-		return;
-	}
-
-	if ((index % container->capacity()) != 0 || index >= container->size()) {
-		return;
-	}
-
-	player->setContainerIndex(containerId, index);
-	player->sendContainer(containerId, container, false, index);
 }
 
 void Game::playerUpdateHouseWindow(uint32_t playerId, uint8_t listId, uint32_t windowTextId, const std::string& text)
@@ -5448,19 +5319,6 @@ Guild* Game::getGuild(uint32_t id) const
 void Game::addGuild(Guild* guild)
 {
 	guilds[guild->getId()] = guild;
-}
-
-void Game::decreaseBrowseFieldRef(const Position& pos)
-{
-	Tile* tile = map.getTile(pos.x, pos.y, pos.z);
-	if (!tile) {
-		return;
-	}
-
-	auto it = browseFields.find(tile);
-	if (it != browseFields.end()) {
-		it->second->decrementReferenceCounter();
-	}
 }
 
 void Game::internalRemoveItems(std::vector<Item*> itemList, uint32_t amount, bool stackable)

@@ -136,9 +136,6 @@ class ProtocolGame final : public Protocol
 
 		void parseModalWindowAnswer(NetworkMessage& msg);
 
-		void parseBrowseField(NetworkMessage& msg);
-		void parseSeekInContainer(NetworkMessage& msg);
-
 		//trade methods
 		void parseRequestTrade(NetworkMessage& msg);
 		void parseLookInTrade(NetworkMessage& msg);

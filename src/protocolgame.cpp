@@ -515,8 +515,6 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0xBE: addGameTask(&Game::playerCancelAttackAndFollow, player->getID()); break;
 		case 0xC9: /* update tile */ break;
 		case 0xCA: parseUpdateContainer(msg); break;
-		case 0xCB: parseBrowseField(msg); break;
-		case 0xCC: parseSeekInContainer(msg); break;
 		case 0xD2: addGameTask(&Game::playerRequestOutfit, player->getID()); break;
 		case 0xD3: parseSetOutfit(msg); break;
 		case 0xD4: parseToggleMount(msg); break;
@@ -1152,19 +1150,6 @@ void ProtocolGame::parseModalWindowAnswer(NetworkMessage& msg)
 	addGameTask(&Game::playerAnswerModalWindow, player->getID(), id, button, choice);
 }
 
-void ProtocolGame::parseBrowseField(NetworkMessage& msg)
-{
-	const Position& pos = msg.getPosition();
-	addGameTask(&Game::playerBrowseField, player->getID(), pos);
-}
-
-void ProtocolGame::parseSeekInContainer(NetworkMessage& msg)
-{
-	uint8_t containerId = msg.getByte();
-	uint16_t index = msg.get<uint16_t>();
-	addGameTask(&Game::playerSeekInContainer, player->getID(), containerId, index);
-}
-
 // Send methods
 void ProtocolGame::sendOpenPrivateChannel(const std::string& receiver)
 {
@@ -1260,6 +1245,8 @@ void ProtocolGame::sendCreatureSkull(const Creature* creature)
 
 void ProtocolGame::sendCreatureType(uint32_t creatureId, uint8_t creatureType)
 {
+	return;
+
 	NetworkMessage msg;
 	msg.addByte(0x95);
 	msg.add<uint32_t>(creatureId);
@@ -1269,6 +1256,8 @@ void ProtocolGame::sendCreatureType(uint32_t creatureId, uint8_t creatureType)
 
 void ProtocolGame::sendCreatureHelpers(uint32_t creatureId, uint16_t helpers)
 {
+	return;
+
 	NetworkMessage msg;
 	msg.addByte(0x94);
 	msg.add<uint32_t>(creatureId);
@@ -1312,7 +1301,6 @@ void ProtocolGame::sendReLoginWindow(uint8_t unfairFightReduction)
 {
 	NetworkMessage msg;
 	msg.addByte(0x28);
-	msg.addByte(0x00);
 	msg.addByte(unfairFightReduction);
 	writeToOutputBuffer(msg);
 }
@@ -1458,33 +1446,18 @@ void ProtocolGame::sendContainer(uint8_t cid, const Container* container, bool h
 
 	msg.addByte(cid);
 
-	if (container->getID() == ITEM_BROWSEFIELD) {
-		msg.addItem(1987, 1);
-		msg.addString("Browse Field");
-	} else {
-		msg.addItem(container);
-		msg.addString(container->getName());
-	}
+	msg.addItem(container);
+	msg.addString(container->getName());
 
 	msg.addByte(container->capacity());
 
 	msg.addByte(hasParent ? 0x01 : 0x00);
 
-	msg.addByte(container->isUnlocked() ? 0x01 : 0x00); // Drag and drop
-	msg.addByte(container->hasPagination() ? 0x01 : 0x00); // Pagination
-
-	uint32_t containerSize = container->size();
-	msg.add<uint16_t>(containerSize);
-	msg.add<uint16_t>(firstIndex);
-	if (firstIndex < containerSize) {
-		uint8_t itemsToSend = std::min<uint32_t>(std::min<uint32_t>(container->capacity(), containerSize - firstIndex), std::numeric_limits<uint8_t>::max());
-
-		msg.addByte(itemsToSend);
-		for (ItemDeque::const_iterator it = container->getItemList().begin() + firstIndex, end = it + itemsToSend; it != end; ++it) {
-			msg.addItem(*it);
-		}
-	} else {
-		msg.addByte(0x00);
+	msg.addByte(std::min<uint32_t>(0xFF, container->size()));
+	uint32_t i = 0;
+	const ItemDeque& itemList = container->getItemList();
+	for (ItemDeque::const_iterator cit = itemList.begin() + firstIndex, end = itemList.end(); i < 0xFF && cit != end; ++cit, ++i) {
+		msg.addItem(*cit);
 	}
 	writeToOutputBuffer(msg);
 }
@@ -2568,7 +2541,6 @@ void ProtocolGame::sendAddContainerItem(uint8_t cid, uint16_t slot, const Item* 
 	NetworkMessage msg;
 	msg.addByte(0x70);
 	msg.addByte(cid);
-	msg.add<uint16_t>(slot);
 	msg.addItem(item);
 	writeToOutputBuffer(msg);
 }
@@ -2578,7 +2550,7 @@ void ProtocolGame::sendUpdateContainerItem(uint8_t cid, uint16_t slot, const Ite
 	NetworkMessage msg;
 	msg.addByte(0x71);
 	msg.addByte(cid);
-	msg.add<uint16_t>(slot);
+	msg.addByte(slot);
 	msg.addItem(item);
 	writeToOutputBuffer(msg);
 }
@@ -2588,12 +2560,7 @@ void ProtocolGame::sendRemoveContainerItem(uint8_t cid, uint16_t slot, const Ite
 	NetworkMessage msg;
 	msg.addByte(0x72);
 	msg.addByte(cid);
-	msg.add<uint16_t>(slot);
-	if (lastItem) {
-		msg.addItem(lastItem);
-	} else {
-		msg.add<uint16_t>(0x00);
-	}
+	msg.addByte(slot);
 	writeToOutputBuffer(msg);
 }
 
@@ -2823,7 +2790,7 @@ void ProtocolGame::AddCreature(NetworkMessage& msg, const Creature* creature, bo
 
 	msg.add<uint16_t>(creature->getStepSpeed() / 2);
 
-	msg.addByte(player->getSkullClient(creature));
+	msg.addByte(player->getSkullClient(otherPlayer));
 	msg.addByte(player->getPartyShield(otherPlayer));
 
 	if (!known) {

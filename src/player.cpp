@@ -658,18 +658,9 @@ void Player::addContainer(uint8_t cid, Container* container)
 		return;
 	}
 
-	if (container->getID() == ITEM_BROWSEFIELD) {
-		container->incrementReferenceCounter();
-	}
-
 	auto it = openContainers.find(cid);
 	if (it != openContainers.end()) {
 		OpenContainer& openContainer = it->second;
-		Container* oldContainer = openContainer.container;
-		if (oldContainer->getID() == ITEM_BROWSEFIELD) {
-			oldContainer->decrementReferenceCounter();
-		}
-
 		openContainer.container = container;
 		openContainer.index = 0;
 	} else {
@@ -688,12 +679,7 @@ void Player::closeContainer(uint8_t cid)
 	}
 
 	OpenContainer openContainer = it->second;
-	Container* container = openContainer.container;
 	openContainers.erase(it);
-
-	if (container && container->getID() == ITEM_BROWSEFIELD) {
-		container->decrementReferenceCounter();
-	}
 }
 
 void Player::setContainerIndex(uint8_t cid, uint16_t index)
@@ -1037,16 +1023,7 @@ void Player::sendAddContainerItem(const Container* container, const Item* item)
 		}
 
 		uint16_t slot = openContainer.index;
-		if (container->getID() == ITEM_BROWSEFIELD) {
-			uint16_t containerSize = container->size() - 1;
-			uint16_t pageEnd = openContainer.index + container->capacity() - 1;
-			if (containerSize > pageEnd) {
-				slot = pageEnd;
-				item = container->getItemByIndex(pageEnd);
-			} else {
-				slot = containerSize;
-			}
-		} else if (openContainer.index >= container->capacity()) {
+		if (openContainer.index >= container->capacity()) {
 			item = container->getItemByIndex(openContainer.index - 1);
 		}
 		client->sendAddContainerItem(it.first, slot, item);
@@ -1529,7 +1506,7 @@ void Player::onSendContainer(const Container* container)
 		return;
 	}
 
-	bool hasParent = container->hasParent();
+	bool hasParent = dynamic_cast<const Container*>(container->getParent()) != nullptr;
 	for (const auto& it : openContainers) {
 		const OpenContainer& openContainer = it.second;
 		if (openContainer.container == container) {
@@ -4241,13 +4218,7 @@ GuildEmblems_t Player::getGuildEmblem(const Player* player) const
 		return GUILDEMBLEM_NONE;
 	}
 
-	if (player->getGuildWarList().empty()) {
-		if (guild == playerGuild) {
-			return GUILDEMBLEM_MEMBER;
-		} else {
-			return GUILDEMBLEM_OTHER;
-		}
-	} else if (guild == playerGuild) {
+	if (guild == playerGuild) {
 		return GUILDEMBLEM_ALLY;
 	} else if (isInWar(player)) {
 		return GUILDEMBLEM_ENEMY;

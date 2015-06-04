@@ -32,7 +32,6 @@ Container::Container(uint16_t _type) : Item(_type)
 	totalWeight = 0;
 	serializationCount = 0;
 	unlocked = true;
-	pagination = false;
 }
 
 Container::Container(uint16_t _type, uint16_t _size) : Item(_type)
@@ -41,42 +40,13 @@ Container::Container(uint16_t _type, uint16_t _size) : Item(_type)
 	totalWeight = 0;
 	serializationCount = 0;
 	unlocked = true;
-	pagination = false;
-}
-
-Container::Container(Tile* tile) : Item(ITEM_BROWSEFIELD)
-{
-	TileItemVector* itemVector = tile->getItemList();
-	if (itemVector) {
-		for (Item* item : *itemVector) {
-			if (item->getContainer() || item->hasProperty(CONST_PROP_MOVEABLE)) {
-				itemlist.push_front(item);
-				item->setParent(this);
-			}
-		}
-	}
-
-	maxSize = 30;
-	totalWeight = 0;
-	serializationCount = 0;
-	unlocked = false;
-	pagination = true;
-	setParent(tile);
 }
 
 Container::~Container()
 {
-	if (getID() == ITEM_BROWSEFIELD) {
-		g_game.browseFields.erase(getTile());
-
-		for (Item* item : itemlist) {
-			item->setParent(parent);
-		}
-	} else {
-		for (Item* item : itemlist) {
-			item->setParent(nullptr);
-			item->decrementReferenceCounter();
-		}
+	for (Item* item : itemlist) {
+		item->setParent(nullptr);
+		item->decrementReferenceCounter();
 	}
 }
 
@@ -97,11 +67,6 @@ Container* Container::getParentContainer()
 		return nullptr;
 	}
 	return thing->getContainer();
-}
-
-bool Container::hasParent() const
-{
-	return getID() != ITEM_BROWSEFIELD && dynamic_cast<const Player*>(getParent()) == nullptr;
 }
 
 void Container::addItem(Item* item)

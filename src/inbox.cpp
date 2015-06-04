@@ -27,7 +27,6 @@ Inbox::Inbox(uint16_t _type) :
 {
 	maxSize = 30;
 	unlocked = false;
-	pagination = true;
 }
 
 ReturnValue Inbox::queryAdd(int32_t, const Thing& thing, uint32_t,
