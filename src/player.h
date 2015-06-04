@@ -933,11 +933,6 @@ class Player final : public Creature, public Cylinder
 			}
 		}
 		void sendPing();
-		void sendPingBack() const {
-			if (client) {
-				client->sendPingBack();
-			}
-		}
 		void sendStats();
 		void sendBasicData() const {
 			if (client) {

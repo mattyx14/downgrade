@@ -4091,7 +4091,6 @@ bool Player::isPremium() const
 void Player::setPremiumDays(int32_t v)
 {
 	premiumDays = v;
-	sendBasicData();
 }
 
 PartyShields_t Player::getPartyShield(const Player* player) const

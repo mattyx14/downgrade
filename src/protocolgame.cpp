@@ -455,7 +455,6 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 
 	switch (recvbyte) {
 		case 0x14: g_dispatcher.addTask(createTask(std::bind(&ProtocolGame::logout, this, true, false))); break;
-		case 0x1D: addGameTask(&Game::playerReceivePingBack, player->getID()); break;
 		case 0x1E: addGameTask(&Game::playerReceivePing, player->getID()); break;
 		case 0x32: parseExtendedOpcode(msg); break; //otclient extended opcode
 		case 0x64: parseAutoWalk(msg); break;
@@ -1306,16 +1305,6 @@ void ProtocolGame::sendStats()
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendBasicData()
-{
-	NetworkMessage msg;
-	msg.addByte(0x9F);
-	msg.addByte(player->isPremium() ? 0x01 : 0x00);
-	msg.addByte(player->getVocation()->getClientId());
-	msg.add<uint16_t>(0x00);
-	writeToOutputBuffer(msg);
-}
-
 void ProtocolGame::sendTextMessage(const TextMessage& message)
 {
 	NetworkMessage msg;
@@ -1567,6 +1556,7 @@ void ProtocolGame::sendMarketEnter(uint32_t depotId)
 	msg.addByte(0xF6);
 
 	msg.add<uint64_t>(player->getBankBalance());
+	msg.addByte(player->getVocation()->getClientId());
 	msg.addByte(std::min<uint32_t>(IOMarket::getPlayerOfferCount(player->getGUID()), std::numeric_limits<uint8_t>::max()));
 
 	DepotChest* depotChest = player->getDepotChest(depotId, false);
@@ -2080,7 +2070,6 @@ void ProtocolGame::sendCreatureTurn(const Creature* creature, uint32_t stackPos)
 	msg.add<uint16_t>(0x63);
 	msg.add<uint32_t>(creature->getID());
 	msg.addByte(creature->getDirection());
-	msg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);
 	writeToOutputBuffer(msg);
 }
 
@@ -2190,13 +2179,6 @@ void ProtocolGame::sendSkills()
 }
 
 void ProtocolGame::sendPing()
-{
-	NetworkMessage msg;
-	msg.addByte(0x1D);
-	writeToOutputBuffer(msg);
-}
-
-void ProtocolGame::sendPingBack()
 {
 	NetworkMessage msg;
 	msg.addByte(0x1E);
@@ -2429,7 +2411,6 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 		}
 	}
 
-	sendBasicData();
 	player->sendIcons();
 }
 
