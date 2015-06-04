@@ -278,10 +278,6 @@ ReturnValue Container::queryAdd(int32_t index, const Thing& thing, uint32_t coun
 				return RETURNVALUE_THISISIMPOSSIBLE;
 			}
 
-			if (dynamic_cast<const Inbox*>(cylinder)) {
-				return RETURNVALUE_CONTAINERNOTENOUGHROOM;
-			}
-
 			cylinder = cylinder->getParent();
 		}
 

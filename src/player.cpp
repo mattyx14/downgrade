@@ -109,7 +109,6 @@ Player::Player(ProtocolGame* p) :
 
 	blessings = 0;
 
-	inMarket = false;
 	lastDepotId = -1;
 
 	chaseMode = CHASEMODE_STANDSTILL;
@@ -144,13 +143,6 @@ Player::Player(ProtocolGame* p) :
 
 	bankBalance = 0;
 
-	inbox = new Inbox(ITEM_INBOX);
-	inbox->incrementReferenceCounter();
-
-	offlineTrainingSkill = -1;
-	offlineTrainingTime = 0;
-	lastStatsTrainingTime = 0;
-
 	ghostMode = false;
 
 	staminaMinutes = 2520;
@@ -170,11 +162,8 @@ Player::~Player()
 	}
 
 	for (const auto& it : depotLockerMap) {
-		it.second->removeInbox(inbox);
 		it.second->decrementReferenceCounter();
 	}
-
-	inbox->decrementReferenceCounter();
 
 	setWriteItem(nullptr);
 	setEditHouse(nullptr);
@@ -902,14 +891,11 @@ DepotLocker* Player::getDepotLocker(uint32_t depotId)
 {
 	auto it = depotLockerMap.find(depotId);
 	if (it != depotLockerMap.end()) {
-		inbox->setParent(it->second);
 		return it->second;
 	}
 
 	DepotLocker* depotLocker = new DepotLocker(ITEM_LOCKER1);
 	depotLocker->setDepotId(depotId);
-	depotLocker->internalAddThing(Item::CreateItem(ITEM_MARKET));
-	depotLocker->internalAddThing(inbox);
 	depotLocker->internalAddThing(getDepotChest(depotId, true));
 	depotLockerMap[depotId] = depotLocker;
 	return depotLocker;
@@ -924,7 +910,6 @@ void Player::sendStats()
 {
 	if (client) {
 		client->sendStats();
-		lastStatsTrainingTime = getOfflineTrainingTime() / 60 / 1000;
 	}
 }
 
@@ -1139,16 +1124,8 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 			guild->addMember(this);
 		}
 
-		int32_t offlineTime;
-		if (getLastLogout() != 0) {
-			// Not counting more than 21 days to prevent overflow when multiplying with 1000 (for milliseconds).
-			offlineTime = std::min<int32_t>(time(nullptr) - getLastLogout(), 86400 * 21);
-		} else {
-			offlineTime = 0;
-		}
-
 		for (Condition* condition : getMuteConditions()) {
-			condition->setTicks(condition->getTicks() - (offlineTime * 1000));
+			condition->setTicks(condition->getTicks());
 			if (condition->getTicks() <= 0) {
 				removeCondition(condition);
 			}
@@ -1157,91 +1134,6 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 		bool sentStats = false;
 
 		int16_t oldStaminaMinutes = getStaminaMinutes();
-
-		if (offlineTrainingSkill != -1) {
-			if (offlineTime >= 600) {
-				uint32_t trainingTime = std::max<int32_t>(0, std::min<int32_t>(offlineTime, std::min<int32_t>(43200, offlineTrainingTime / 1000)));
-
-				removeOfflineTrainingTime(trainingTime * 1000);
-
-				int32_t remainder = offlineTime - trainingTime;
-				if (remainder > 0) {
-					addOfflineTrainingTime(remainder * 1000);
-				}
-
-				if (trainingTime >= 60) {
-					std::ostringstream ss;
-					ss << "During your absence you trained for ";
-					int32_t hours = trainingTime / 3600;
-					if (hours > 1) {
-						ss << hours << " hours";
-					} else if (hours == 1) {
-						ss << "1 hour";
-					}
-
-					int32_t minutes = (trainingTime % 3600) / 60;
-					if (minutes != 0) {
-						if (hours != 0) {
-							ss << " and ";
-						}
-
-						if (minutes > 1) {
-							ss << minutes << " minutes";
-						} else {
-							ss << "1 minute";
-						}
-					}
-
-					ss << '.';
-					sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
-
-					Vocation* topVocation;
-					if (isPromoted()) {
-						topVocation = getVocation();
-					} else {
-						int32_t promotedVocationId = g_vocations.getPromotedVocation(getVocationId());
-						topVocation = g_vocations.getVocation(promotedVocationId);
-						if (!topVocation) {
-							topVocation = getVocation();
-						}
-					}
-
-					bool sendUpdateSkills = false;
-					if (offlineTrainingSkill == SKILL_CLUB || offlineTrainingSkill == SKILL_SWORD || offlineTrainingSkill == SKILL_AXE) {
-						float modifier = topVocation->getAttackSpeed() / 1000.f;
-						sendUpdateSkills = addOfflineTrainingTries(static_cast<skills_t>(offlineTrainingSkill), (trainingTime / modifier) / 2);
-					} else if (offlineTrainingSkill == SKILL_DISTANCE) {
-						float modifier = topVocation->getAttackSpeed() / 1000.f;
-						sendUpdateSkills = addOfflineTrainingTries(static_cast<skills_t>(offlineTrainingSkill), (trainingTime / modifier) / 4);
-					} else if (offlineTrainingSkill == SKILL_MAGLEVEL) {
-						int32_t gainTicks = topVocation->getManaGainTicks() * 2;
-						if (gainTicks == 0) {
-							gainTicks = 1;
-						}
-
-						addOfflineTrainingTries(SKILL_MAGLEVEL, trainingTime * (static_cast<double>(vocation->getManaGainAmount()) / gainTicks));
-					}
-
-					if (addOfflineTrainingTries(SKILL_SHIELD, trainingTime / 4) || sendUpdateSkills) {
-						sendSkills();
-					}
-				}
-
-				sendStats();
-				sentStats = true;
-			} else {
-				sendTextMessage(MESSAGE_EVENT_ADVANCE, "You must be logged out for more than 10 minutes to start offline training.");
-			}
-			setOfflineTrainingSkill(-1);
-		} else {
-			uint16_t oldMinutes = getOfflineTrainingTime() / 60 / 1000;
-			addOfflineTrainingTime(offlineTime * 1000);
-			uint16_t newMinutes = getOfflineTrainingTime() / 60 / 1000;
-			if (oldMinutes != newMinutes) {
-				sendStats();
-				sentStats = true;
-			}
-		}
 
 		if (!sentStats && getStaminaMinutes() != oldStaminaMinutes) {
 			sendStats();
@@ -1424,23 +1316,6 @@ void Player::onCreatureMove(Creature* creature, const Tile* newTile, const Posit
 		if (tradePartner && !Position::areInRange<2, 2, 0>(tradePartner->getPosition(), getPosition())) {
 			g_game.internalCloseTrade(this);
 		}
-	}
-
-	// close modal windows
-	if (!modalWindows.empty()) {
-		// TODO: This shouldn't be hardcoded
-		for (uint32_t modalWindowId : modalWindows) {
-			if (modalWindowId == std::numeric_limits<uint32_t>::max()) {
-				sendTextMessage(MESSAGE_EVENT_ADVANCE, "Offline training aborted.");
-				break;
-			}
-		}
-		modalWindows.clear();
-	}
-
-	// leave market
-	if (inMarket) {
-		inMarket = false;
 	}
 
 	if (party) {
@@ -1632,10 +1507,7 @@ void Player::onThink(uint32_t interval)
 		checkSkullTicks(interval);
 	}
 
-	addOfflineTrainingTime(interval);
-	if (lastStatsTrainingTime != getOfflineTrainingTime() / 60 / 1000) {
-		sendStats();
-	}
+	sendStats();
 }
 
 uint32_t Player::isMuted() const
@@ -4379,159 +4251,6 @@ void Player::dismount()
 	}
 
 	defaultOutfit.lookMount = 0;
-}
-
-bool Player::addOfflineTrainingTries(skills_t skill, uint64_t tries)
-{
-	if (tries == 0 || skill == SKILL_LEVEL) {
-		return false;
-	}
-
-	bool sendUpdate = false;
-	uint32_t oldSkillValue, newSkillValue;
-	long double oldPercentToNextLevel, newPercentToNextLevel;
-
-	if (skill == SKILL_MAGLEVEL) {
-		uint64_t currReqMana = vocation->getReqMana(magLevel);
-		uint64_t nextReqMana = vocation->getReqMana(magLevel + 1);
-
-		if (currReqMana >= nextReqMana) {
-			return false;
-		}
-
-		oldSkillValue = magLevel;
-		oldPercentToNextLevel = static_cast<long double>(manaSpent * 100) / nextReqMana;
-
-		g_events->eventPlayerOnGainSkillTries(this, SKILL_MAGLEVEL, tries);
-		uint32_t currMagLevel = magLevel;
-
-		while ((manaSpent + tries) >= nextReqMana) {
-			tries -= nextReqMana - manaSpent;
-
-			magLevel++;
-			manaSpent = 0;
-
-			g_creatureEvents->playerAdvance(this, SKILL_MAGLEVEL, magLevel - 1, magLevel);
-
-			sendUpdate = true;
-			currReqMana = nextReqMana;
-			nextReqMana = vocation->getReqMana(magLevel + 1);
-
-			if (currReqMana >= nextReqMana) {
-				tries = 0;
-				break;
-			}
-		}
-
-		manaSpent += tries;
-
-		if (magLevel != currMagLevel) {
-			std::ostringstream ss;
-			ss << "You advanced to magic level " << magLevel << '.';
-			sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
-		}
-
-		uint8_t newPercent;
-		if (nextReqMana > currReqMana) {
-			newPercent = Player::getPercentLevel(manaSpent, nextReqMana);
-			newPercentToNextLevel = static_cast<long double>(manaSpent * 100) / nextReqMana;
-		} else {
-			newPercent = 0;
-			newPercentToNextLevel = 0;
-		}
-
-		if (newPercent != magLevelPercent) {
-			magLevelPercent = newPercent;
-			sendUpdate = true;
-		}
-
-		newSkillValue = magLevel;
-	} else {
-		uint64_t currReqTries = vocation->getReqSkillTries(skill, skills[skill].level);
-		uint64_t nextReqTries = vocation->getReqSkillTries(skill, skills[skill].level + 1);
-		if (currReqTries >= nextReqTries) {
-			return false;
-		}
-
-		oldSkillValue = skills[skill].level;
-		oldPercentToNextLevel = static_cast<long double>(skills[skill].tries * 100) / nextReqTries;
-
-		g_events->eventPlayerOnGainSkillTries(this, skill, tries);
-		uint32_t currSkillLevel = skills[skill].level;
-
-		while ((skills[skill].tries + tries) >= nextReqTries) {
-			tries -= nextReqTries - skills[skill].tries;
-
-			skills[skill].level++;
-			skills[skill].tries = 0;
-			skills[skill].percent = 0;
-
-			g_creatureEvents->playerAdvance(this, skill, (skills[skill].level - 1), skills[skill].level);
-
-			sendUpdate = true;
-			currReqTries = nextReqTries;
-			nextReqTries = vocation->getReqSkillTries(skill, skills[skill].level + 1);
-
-			if (currReqTries >= nextReqTries) {
-				tries = 0;
-				break;
-			}
-		}
-
-		skills[skill].tries += tries;
-
-		if (currSkillLevel != skills[skill].level) {
-			std::ostringstream ss;
-			ss << "You advanced to " << getSkillName(skill) << " level " << skills[skill].level << '.';
-			sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
-		}
-
-		uint8_t newPercent;
-		if (nextReqTries > currReqTries) {
-			newPercent = Player::getPercentLevel(skills[skill].tries, nextReqTries);
-			newPercentToNextLevel = static_cast<long double>(skills[skill].tries * 100) / nextReqTries;
-		} else {
-			newPercent = 0;
-			newPercentToNextLevel = 0;
-		}
-
-		if (skills[skill].percent != newPercent) {
-			skills[skill].percent = newPercent;
-			sendUpdate = true;
-		}
-
-		newSkillValue = skills[skill].level;
-	}
-
-	std::ostringstream ss;
-	ss << std::fixed << std::setprecision(2) << "Your " << ucwords(getSkillName(skill)) << " skill changed from level " << oldSkillValue << " (with " << oldPercentToNextLevel << "% progress towards level " << (oldSkillValue + 1) << ") to level " << newSkillValue << " (with " << newPercentToNextLevel << "% progress towards level " << (newSkillValue + 1) << ')';
-	sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
-	return sendUpdate;
-}
-
-bool Player::hasModalWindowOpen(uint32_t modalWindowId) const
-{
-	return find(modalWindows.begin(), modalWindows.end(), modalWindowId) != modalWindows.end();
-}
-
-void Player::onModalWindowHandled(uint32_t modalWindowId)
-{
-	modalWindows.remove(modalWindowId);
-}
-
-void Player::sendModalWindow(const ModalWindow& modalWindow)
-{
-	if (!client) {
-		return;
-	}
-
-	modalWindows.push_front(modalWindow.id);
-	client->sendModalWindow(modalWindow);
-}
-
-void Player::clearModalWindows()
-{
-	modalWindows.clear();
 }
 
 uint16_t Player::getHelpers() const

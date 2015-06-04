@@ -134,18 +134,9 @@ class ProtocolGame final : public Protocol
 
 		void parseToggleMount(NetworkMessage& msg);
 
-		void parseModalWindowAnswer(NetworkMessage& msg);
-
 		//trade methods
 		void parseRequestTrade(NetworkMessage& msg);
 		void parseLookInTrade(NetworkMessage& msg);
-
-		//market methods
-		void parseMarketLeave();
-		void parseMarketBrowse(NetworkMessage& msg);
-		void parseMarketCreateOffer(NetworkMessage& msg);
-		void parseMarketCancelOffer(NetworkMessage& msg);
-		void parseMarketAcceptOffer(NetworkMessage& msg);
 
 		//VIP methods
 		void parseAddVip(NetworkMessage& msg);
@@ -206,14 +197,6 @@ class ProtocolGame final : public Protocol
 		void sendShop(Npc* npc, const ShopInfoList& itemList);
 		void sendCloseShop();
 		void sendSaleItemList(const std::list<ShopInfo>& shop);
-		void sendMarketEnter(uint32_t depotId);
-		void sendMarketLeave();
-		void sendMarketBrowseItem(uint16_t itemId, const MarketOfferList& buyOffers, const MarketOfferList& sellOffers);
-		void sendMarketAcceptOffer(const MarketOfferEx& offer);
-		void sendMarketBrowseOwnOffers(const MarketOfferList& buyOffers, const MarketOfferList& sellOffers);
-		void sendMarketCancelOffer(const MarketOfferEx& offer);
-		void sendMarketBrowseOwnHistory(const HistoryMarketOfferList& buyOffers, const HistoryMarketOfferList& sellOffers);
-		void sendMarketDetail(uint16_t itemId);
 		void sendTradeItemRequest(const Player* player, const Item* item, bool ack);
 		void sendCloseTrade();
 
@@ -257,9 +240,6 @@ class ProtocolGame final : public Protocol
 
 		//inventory
 		void sendInventoryItem(slots_t slot, const Item* item);
-
-		//messages
-		void sendModalWindow(const ModalWindow& modalWindow);
 
 		//Help functions
 

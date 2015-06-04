@@ -29,7 +29,6 @@
 #include "protocolgame.h"
 #include "ioguild.h"
 #include "party.h"
-#include "inbox.h"
 #include "depotchest.h"
 #include "depotlocker.h"
 #include "guild.h"
@@ -108,7 +107,7 @@ struct OpenContainer {
 struct OutfitEntry {
 	OutfitEntry(uint16_t lookType, uint8_t addons) : lookType(lookType), addons(addons) {}
 
-	uint16_t lookType;
+uint16_t lookType;
 	uint8_t addons;
 };
 
@@ -204,25 +203,6 @@ class Player final : public Creature, public Cylinder
 			return staminaMinutes;
 		}
 
-		bool addOfflineTrainingTries(skills_t skill, uint64_t tries);
-
-		void addOfflineTrainingTime(int32_t addTime) {
-			offlineTrainingTime = std::min<int32_t>(12 * 3600 * 1000, offlineTrainingTime + addTime);
-		}
-		void removeOfflineTrainingTime(int32_t removeTime) {
-			offlineTrainingTime = std::max<int32_t>(0, offlineTrainingTime - removeTime);
-		}
-		int32_t getOfflineTrainingTime() const {
-			return offlineTrainingTime;
-		}
-
-		int32_t getOfflineTrainingSkill() const {
-			return offlineTrainingSkill;
-		}
-		void setOfflineTrainingSkill(int32_t skill) {
-			offlineTrainingSkill = skill;
-		}
-
 		uint64_t getBankBalance() const {
 			return bankBalance;
 		}
@@ -261,10 +241,6 @@ class Player final : public Creature, public Cylinder
 		}
 		void setLastWalkthroughPosition(Position walkthroughPosition) {
 			lastWalkthroughPosition = walkthroughPosition;
-		}
-
-		Inbox* getInbox() const {
-			return inbox;
 		}
 
 		uint16_t getClientIcons() const;
@@ -371,13 +347,6 @@ class Player final : public Creature, public Cylinder
 			return group;
 		}
 
-		void setInMarket(bool value) {
-			inMarket = value;
-		}
-		bool isInMarket() const {
-			return inMarket;
-		}
-
 		void setLastDepotId(int16_t newId) {
 			lastDepotId = newId;
 		}
@@ -456,10 +425,6 @@ class Player final : public Creature, public Cylinder
 		void setTown(Town* _town) {
 			town = _town;
 		}
-
-		void clearModalWindows();
-		bool hasModalWindowOpen(uint32_t modalWindowId) const;
-		void onModalWindowHandled(uint32_t modalWindowId);
 
 		bool isPushable() const final;
 		uint32_t isMuted() const;
@@ -838,7 +803,6 @@ class Player final : public Creature, public Cylinder
 				client->sendSpellGroupCooldown(groupId, time);
 			}
 		}
-		void sendModalWindow(const ModalWindow& modalWindow);
 
 		//container
 		void sendAddContainerItem(const Container* container, const Item* item);
@@ -982,47 +946,6 @@ class Player final : public Creature, public Cylinder
 		void sendCloseShop() const {
 			if (client) {
 				client->sendCloseShop();
-			}
-		}
-		void sendMarketEnter(uint32_t depotId) const {
-			if (client) {
-				client->sendMarketEnter(depotId);
-			}
-		}
-		void sendMarketLeave() {
-			inMarket = false;
-			if (client) {
-				client->sendMarketLeave();
-			}
-		}
-		void sendMarketBrowseItem(uint16_t itemId, const MarketOfferList& buyOffers, const MarketOfferList& sellOffers) const {
-			if (client) {
-				client->sendMarketBrowseItem(itemId, buyOffers, sellOffers);
-			}
-		}
-		void sendMarketBrowseOwnOffers(const MarketOfferList& buyOffers, const MarketOfferList& sellOffers) const {
-			if (client) {
-				client->sendMarketBrowseOwnOffers(buyOffers, sellOffers);
-			}
-		}
-		void sendMarketBrowseOwnHistory(const HistoryMarketOfferList& buyOffers, const HistoryMarketOfferList& sellOffers) const {
-			if (client) {
-				client->sendMarketBrowseOwnHistory(buyOffers, sellOffers);
-			}
-		}
-		void sendMarketDetail(uint16_t itemId) const {
-			if (client) {
-				client->sendMarketDetail(itemId);
-			}
-		}
-		void sendMarketAcceptOffer(const MarketOfferEx& offer) const {
-			if (client) {
-				client->sendMarketAcceptOffer(offer);
-			}
-		}
-		void sendMarketCancelOffer(const MarketOfferEx& offer) const {
-			if (client) {
-				client->sendMarketCancelOffer(offer);
 			}
 		}
 		void sendTradeItemRequest(const Player* player, const Item* item, bool ack) const {
@@ -1187,7 +1110,6 @@ class Player final : public Creature, public Cylinder
 		std::list<ShopInfo> shopItemList;
 
 		std::forward_list<Party*> invitePartyList;
-		std::forward_list<uint32_t> modalWindows;
 		std::forward_list<std::string> learnedInstantSpellList;
 		std::forward_list<Condition*> storedConditionList; // TODO: This variable is only temporarily used when logging in, get rid of it somehow
 
@@ -1218,7 +1140,6 @@ class Player final : public Creature, public Cylinder
 		BedItem* bedItem;
 		Guild* guild;
 		Group* group;
-		Inbox* inbox;
 		Item* tradeItem;
 		Item* inventory[CONST_SLOT_LAST + 1];
 		Item* writeItem;
@@ -1256,11 +1177,8 @@ class Player final : public Creature, public Cylinder
 		int32_t premiumDays;
 		int32_t bloodHitCount;
 		int32_t shieldBlockCount;
-		int32_t offlineTrainingSkill;
-		int32_t offlineTrainingTime;
 		int32_t idleTime;
 
-		uint16_t lastStatsTrainingTime;
 		uint16_t staminaMinutes;
 		uint16_t maxWriteLen;
 		int16_t lastDepotId;
@@ -1280,7 +1198,6 @@ class Player final : public Creature, public Cylinder
 		AccountType_t accountType;
 
 		bool secureMode;
-		bool inMarket;
 		bool ghostMode;
 		bool pzLocked;
 		bool isConnecting;

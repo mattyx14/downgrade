@@ -93,6 +93,7 @@ void Mailbox::postRemoveNotification(Thing* thing, const Cylinder* newParent, in
 bool Mailbox::sendItem(Item* item) const
 {
 	std::string receiver;
+	uint32_t dp = 0;
 	if (!getReceiver(item, receiver)) {
 		return false;
 	}
@@ -104,7 +105,8 @@ bool Mailbox::sendItem(Item* item) const
 
 	Player* player = g_game.getPlayerByName(receiver);
 	if (player) {
-		if (g_game.internalMoveItem(item->getParent(), player->getInbox(), INDEX_WHEREEVER,
+		DepotLocker* depot = player->getDepotLocker(dp);
+		if (g_game.internalMoveItem(item->getParent(), depot, INDEX_WHEREEVER,
 		                            item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
 			g_game.transformItem(item, item->getID() + 1);
 			player->onReceiveMail();
@@ -116,7 +118,8 @@ bool Mailbox::sendItem(Item* item) const
 			return false;
 		}
 
-		if (g_game.internalMoveItem(item->getParent(), tmpPlayer.getInbox(), INDEX_WHEREEVER,
+		DepotLocker* depot = player->getDepotLocker(dp);
+		if (g_game.internalMoveItem(item->getParent(), depot, INDEX_WHEREEVER,
 		                            item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
 			g_game.transformItem(item, item->getID() + 1);
 			IOLoginData::savePlayer(&tmpPlayer);

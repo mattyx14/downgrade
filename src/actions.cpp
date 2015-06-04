@@ -303,7 +303,6 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 
 		if (bed->trySleep(player)) {
 			player->setBedItem(bed);
-			g_game.sendOfflineTrainingDialog(player);
 		}
 
 		return RETURNVALUE_NOERROR;
@@ -475,8 +474,6 @@ bool Action::loadFunction(const pugi::xml_attribute& attr)
 		function = increaseItemId;
 	} else if (strcasecmp(functionName, "decreaseitemid") == 0) {
 		function = decreaseItemId;
-	} else if (strcasecmp(functionName, "market") == 0) {
-		function = enterMarket;
 	} else {
 		std::cout << "[Warning - Action::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
 		return false;
@@ -495,16 +492,6 @@ bool Action::increaseItemId(Player*, Item* item, const Position&, Thing*, const 
 bool Action::decreaseItemId(Player*, Item* item, const Position&, Thing*, const Position&, bool)
 {
 	g_game.startDecay(g_game.transformItem(item, item->getID() - 1));
-	return true;
-}
-
-bool Action::enterMarket(Player* player, Item*, const Position&, Thing*, const Position&, bool)
-{
-	if (player->getLastDepotId() == -1) {
-		return false;
-	}
-
-	player->sendMarketEnter(player->getLastDepotId());
 	return true;
 }
 

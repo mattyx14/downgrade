@@ -24,7 +24,6 @@
 #include "game.h"
 
 #include "iologindata.h"
-#include "iomarket.h"
 
 #ifndef _WIN32
 #include <csignal> // for sigemptyset()
@@ -302,9 +301,6 @@ void mainLoader(int, char*[], ServiceManager* services)
 	}
 
 	g_game.map.houses.payHouses(rentPeriod);
-
-	IOMarket::checkExpiredOffers();
-	IOMarket::getInstance()->updateStatistics();
 
 	std::cout << ">> Loaded all modules, server starting up..." << std::endl;
 

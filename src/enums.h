@@ -60,25 +60,6 @@ enum VipStatus_t : uint8_t {
 	VIPSTATUS_PENDING = 2
 };
 
-enum MarketAction_t {
-	MARKETACTION_BUY = 0,
-	MARKETACTION_SELL = 1,
-};
-
-enum MarketRequest_t {
-	MARKETREQUEST_OWN_OFFERS = 0xFFFE,
-	MARKETREQUEST_OWN_HISTORY = 0xFFFF,
-};
-
-enum MarketOfferState_t {
-	OFFERSTATE_ACTIVE = 0,
-	OFFERSTATE_CANCELLED = 1,
-	OFFERSTATE_EXPIRED = 2,
-	OFFERSTATE_ACCEPTED = 3,
-
-	OFFERSTATE_ACCEPTEDEX = 255,
-};
-
 enum ChannelEvent_t : uint8_t {
 	CHANNELEVENT_JOIN = 0,
 	CHANNELEVENT_LEAVE = 1,
@@ -463,67 +444,6 @@ struct ShopInfo {
 		: itemId(itemId), subType(subType), buyPrice(buyPrice), sellPrice(sellPrice), realName(realName) {}
 };
 
-struct MarketOffer {
-	uint32_t price;
-	uint32_t timestamp;
-	uint16_t amount;
-	uint16_t counter;
-	uint16_t itemId;
-	std::string playerName;
-};
-
-struct MarketOfferEx {
-	MarketOfferEx() = default;
-	MarketOfferEx(MarketOfferEx&& other) :
-		id(other.id), playerId(other.playerId), timestamp(other.timestamp), price(other.price),
-		amount(other.amount), counter(other.counter), itemId(other.itemId), type(other.type),
-		playerName(std::move(other.playerName)) {}
-
-	uint32_t id;
-	uint32_t playerId;
-	uint32_t timestamp;
-	uint32_t price;
-	uint16_t amount;
-	uint16_t counter;
-	uint16_t itemId;
-	MarketAction_t type;
-	std::string playerName;
-};
-
-struct HistoryMarketOffer {
-	uint32_t timestamp;
-	uint32_t price;
-	uint16_t itemId;
-	uint16_t amount;
-	MarketOfferState_t state;
-};
-
-struct MarketStatistics {
-	MarketStatistics() {
-		numTransactions = 0;
-		highestPrice = 0;
-		totalPrice = 0;
-		lowestPrice = 0;
-	}
-
-	uint32_t numTransactions;
-	uint32_t highestPrice;
-	uint64_t totalPrice;
-	uint32_t lowestPrice;
-};
-
-struct ModalWindow
-{
-	std::list<std::pair<std::string, uint8_t>> buttons, choices;
-	std::string title, message;
-	uint32_t id;
-	uint8_t defaultEnterButton, defaultEscapeButton;
-	bool priority;
-
-	ModalWindow(uint32_t id, std::string title, std::string message)
-		: title(title), message(message), id(id), defaultEnterButton(0xFF), defaultEscapeButton(0xFF), priority(false) {}
-};
-
 enum CombatOrigin
 {
 	ORIGIN_NONE,
@@ -549,8 +469,6 @@ struct CombatDamage
 	}
 };
 
-typedef std::list<MarketOffer> MarketOfferList;
-typedef std::list<HistoryMarketOffer> HistoryMarketOfferList;
 typedef std::list<ShopInfo> ShopInfoList;
 
 #endif
