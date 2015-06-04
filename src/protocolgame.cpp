@@ -1180,21 +1180,21 @@ void ProtocolGame::sendCreatureSkull(const Creature* creature)
 }
 
 void ProtocolGame::sendCreatureType(uint32_t creatureId, uint8_t creatureType)
-{/*
+{
 	NetworkMessage msg;
 	msg.addByte(0x95);
 	msg.add<uint32_t>(creatureId);
 	msg.addByte(creatureType);
-	writeToOutputBuffer(msg);*/
+	writeToOutputBuffer(msg);
 }
 
 void ProtocolGame::sendCreatureHelpers(uint32_t creatureId, uint16_t helpers)
-{/*
+{
 	NetworkMessage msg;
 	msg.addByte(0x94);
 	msg.add<uint32_t>(creatureId);
 	msg.add<uint16_t>(helpers);
-	writeToOutputBuffer(msg);*/
+	writeToOutputBuffer(msg);
 }
 
 void ProtocolGame::sendCreatureSquare(const Creature* creature, SquareColor_t color)
@@ -2011,7 +2011,7 @@ void ProtocolGame::sendInventoryItem(slots_t slot, const Item* item)
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendAddContainerItem(uint8_t cid, uint16_t slot, const Item* item)
+void ProtocolGame::sendAddContainerItem(uint8_t cid, const Item* item)
 {
 	NetworkMessage msg;
 	msg.addByte(0x70);
@@ -2030,7 +2030,7 @@ void ProtocolGame::sendUpdateContainerItem(uint8_t cid, uint16_t slot, const Ite
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendRemoveContainerItem(uint8_t cid, uint16_t slot, const Item* lastItem)
+void ProtocolGame::sendRemoveContainerItem(uint8_t cid, uint16_t slot)
 {
 	NetworkMessage msg;
 	msg.addByte(0x72);

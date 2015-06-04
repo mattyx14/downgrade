@@ -1198,6 +1198,7 @@ class Player final : public Creature, public Cylinder
 		AccountType_t accountType;
 
 		bool secureMode;
+		bool wasMounted;
 		bool ghostMode;
 		bool pzLocked;
 		bool isConnecting;

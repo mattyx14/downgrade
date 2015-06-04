@@ -129,6 +129,8 @@ Player::Player(ProtocolGame* p) :
 	lastWalkthroughAttempt = 0;
 	lastToggleMount = 0;
 
+	wasMounted = false;
+
 	sex = PLAYERSEX_FEMALE;
 
 	town = nullptr;
@@ -667,7 +669,6 @@ void Player::closeContainer(uint8_t cid)
 		return;
 	}
 
-	OpenContainer openContainer = it->second;
 	openContainers.erase(it);
 }
 
@@ -1007,11 +1008,10 @@ void Player::sendAddContainerItem(const Container* container, const Item* item)
 			continue;
 		}
 
-		uint16_t slot = openContainer.index;
 		if (openContainer.index >= container->capacity()) {
 			item = container->getItemByIndex(openContainer.index - 1);
 		}
-		client->sendAddContainerItem(it.first, slot, item);
+		client->sendAddContainerItem(it.first, item);
 	}
 }
 
@@ -1058,7 +1058,7 @@ void Player::sendRemoveContainerItem(const Container* container, uint16_t slot)
 			sendContainer(it.first, container, false, firstIndex);
 		}
 
-		client->sendRemoveContainerItem(it.first, std::max<uint16_t>(slot, firstIndex), container->getItemByIndex(container->capacity() + firstIndex));
+		client->sendRemoveContainerItem(it.first, std::max<uint16_t>(slot, firstIndex));
 	}
 }
 
@@ -1173,6 +1173,12 @@ void Player::onChangeZone(ZoneType_t zone)
 		if (!group->access && isMounted()) {
 			dismount();
 			g_game.internalCreatureChangeOutfit(this, defaultOutfit);
+			wasMounted = true;
+		}
+	} else {
+		if (wasMounted) {
+			toggleMount(true);
+			wasMounted = false;
 		}
 	}
 
@@ -4114,7 +4120,7 @@ void Player::setCurrentMount(uint8_t mount)
 
 bool Player::toggleMount(bool mount)
 {
-	if ((OTSYS_TIME() - lastToggleMount) < 3000) {
+	if ((OTSYS_TIME() - lastToggleMount) < 3000 && !wasMounted) {
 		sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
 		return false;
 	}
