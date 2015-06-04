@@ -536,8 +536,6 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 
 void ProtocolGame::GetTileDescription(const Tile* tile, NetworkMessage& msg)
 {
-	msg.add<uint16_t>(0x00); //environmental effects
-
 	int32_t count;
 	Item* ground = tile->getGround();
 	if (ground) {
@@ -2213,7 +2211,6 @@ void ProtocolGame::AddCreature(NetworkMessage& msg, const Creature* creature, bo
 		msg.add<uint16_t>(0x61);
 		msg.add<uint32_t>(remove);
 		msg.add<uint32_t>(creature->getID());
-		msg.addByte(creature->getType());
 		msg.addString(creature->getName());
 	}
 
@@ -2257,7 +2254,6 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 	msg.add<uint16_t>(std::min<int32_t>(player->getPlayerInfo(PLAYERINFO_MAXHEALTH), std::numeric_limits<uint16_t>::max()));
 
 	msg.add<uint32_t>(player->getFreeCapacity());
-	msg.add<uint32_t>(player->getCapacity());
 
 	msg.add<uint64_t>(player->getExperience());
 
@@ -2268,17 +2264,11 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 	msg.add<uint16_t>(std::min<int32_t>(player->getPlayerInfo(PLAYERINFO_MAXMANA), std::numeric_limits<uint16_t>::max()));
 
 	msg.addByte(std::min<uint32_t>(player->getMagicLevel(), std::numeric_limits<uint8_t>::max()));
-	msg.addByte(std::min<uint32_t>(player->getBaseMagicLevel(), std::numeric_limits<uint8_t>::max()));
 	msg.addByte(player->getPlayerInfo(PLAYERINFO_MAGICLEVELPERCENT));
 
 	msg.addByte(player->getSoul());
 
 	msg.add<uint16_t>(player->getStaminaMinutes());
-
-	msg.add<uint16_t>(player->getBaseSpeed());
-
-	Condition* condition = player->getCondition(CONDITION_REGENERATION);
-	msg.add<uint16_t>(condition ? condition->getTicks() / 1000 : 0x00);
 }
 
 void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
@@ -2287,7 +2277,6 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 
 	for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		msg.addByte(std::min<int32_t>(player->getSkillLevel(i), std::numeric_limits<uint16_t>::max()));
-		msg.addByte(player->getBaseSkill(i));
 		msg.addByte(player->getSkillPercent(i));
 	}
 }
