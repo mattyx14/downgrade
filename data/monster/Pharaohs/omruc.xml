@@ -3,6 +3,7 @@
 	<health now="4300" max="4300"/>
 	<look type="90" corpse="6025"/>
 	<targetchange interval="5000" chance="8"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -41,8 +42,10 @@
 			<attribute key="areaEffect" value="blueshimmer"/>
 		</defense>
 	</defenses>
+	<elements>
+		<element deathPercent="100"/>
+	</elements>
 	<immunities>
-		<immunity death="1"/>
 		<immunity paralyze="1"/>
 		<immunity invisible="1"/>
 	</immunities>
@@ -64,11 +67,15 @@
 		<item id="7365" countmax="2" chance="10000"/><!-- onyx arrow -->
 		<item id="2547" countmax="3" chance="10000"/><!-- power bolt -->
 		<item id="2145" countmax="3" chance="7000"/><!-- small diamond -->
-		<item id="7591" chance="7000"/><!-- great health potion-->
-		<item id="2165" chance="5000"/><!-- stealth ring -->
-		<item id="2154" chance="5000"/><!-- yellow gem -->
-		<item id="2195" chance="1500"/><!-- boots of haste -->
-		<item id="2444" chance="300"/><!-- hammer of wrath -->
-		<item id="2352" chance="100000"/><!-- crystal arrow -->
+		<item id="1987" chance="100000"><!-- bag -->
+			
+				<item id="7591" chance="7000"/><!-- great health potion-->
+				<item id="2165" chance="5000"/><!-- stealth ring -->
+				<item id="2154" chance="5000"/><!-- yellow gem -->
+				<item id="2195" chance="1500"/><!-- boots of haste -->
+				<item id="2444" chance="300"/><!-- hammer of wrath -->
+				<item id="2352" chance="100000"/><!-- crystal arrow -->
+			
+		</item>
 	</loot>
 </monster>

@@ -3,6 +3,7 @@
 	<health now="3900" max="3900"/>
 	<look type="90" corpse="6025"/>
 	<targetchange interval="5000" chance="8"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -44,13 +45,13 @@
 		</defense>
 	</defenses>
 	<elements>
+		<element firePercent="100"/>
+		<element deathPercent="100"/>
 		<element energyPercent="45"/>
 		<element holyPercent="-22"/>
 		<element icePercent="-25"/>
 	</elements>
 	<immunities>
-		<immunity fire="1"/>
-		<immunity death="1"/>
 		<immunity invisible="1"/>
 	</immunities>
 	<summons maxSummons="4">
@@ -68,12 +69,16 @@
 		<item id="2148" countmax="70" chance="50000"/><!-- gold coin -->
 		<item id="2148" countmax="64" chance="50000"/><!-- gold coin -->
 		<item id="2147" countmax="3" chance="7000"/><!-- small ruby -->
-		<item id="2168" chance="1500"/><!-- life ring -->
-		<item id="7591" chance="1500"/><!-- great health potion -->
-		<item id="2156" chance="1500"/><!-- red gem -->
-		<item id="2432" chance="750"/><!-- fire axe -->
-		<item id="2141" chance="500"/><!-- holy falcon -->
-		<item id="2539" chance="300"/><!-- phoenix shield -->
-		<item id="2353" chance="100000"/><!-- burning heart -->
+		<item id="1987" chance="100000"><!-- bag -->
+			
+				<item id="2168" chance="1500"/><!-- life ring -->
+				<item id="7591" chance="1500"/><!-- great health potion -->
+				<item id="2156" chance="1500"/><!-- red gem -->
+				<item id="2432" chance="750"/><!-- fire axe -->
+				<item id="2141" chance="500"/><!-- holy falcon -->
+				<item id="2539" chance="300"/><!-- phoenix shield -->
+				<item id="2353" chance="100000"/><!-- burning heart -->
+			
+		</item>
 	</loot>
 </monster>

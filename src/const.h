@@ -175,44 +175,41 @@ enum SpeakClasses : uint8_t {
 	TALKTYPE_SAY = 1,
 	TALKTYPE_WHISPER = 2,
 	TALKTYPE_YELL = 3,
-	TALKTYPE_PRIVATE_FROM = 4,
-	TALKTYPE_PRIVATE_TO = 5,
+	TALKTYPE_PRIVATE_FROM = 6,
+	TALKTYPE_PRIVATE_TO = TALKTYPE_PRIVATE_FROM,
 	TALKTYPE_CHANNEL_Y = 7,
 	TALKTYPE_CHANNEL_O = 8,
-	TALKTYPE_PRIVATE_NP = 10,
-	TALKTYPE_PRIVATE_PN = 11,
+	TALKTYPE_PRIVATE_NP = 5,
+	TALKTYPE_PRIVATE_PN = 4,
 	TALKTYPE_BROADCAST = 12,
 	TALKTYPE_CHANNEL_R1 = 13, //red - #c text
 	TALKTYPE_PRIVATE_RED_FROM = 14, //@name@text
 	TALKTYPE_PRIVATE_RED_TO = 15, //@name@text
-	TALKTYPE_MONSTER_SAY = 34,
-	TALKTYPE_MONSTER_YELL = 35,
+	TALKTYPE_MONSTER_SAY = 19,
+	TALKTYPE_MONSTER_YELL = 20,
 
 	TALKTYPE_CHANNEL_R2 = 0xFF, //#d
 };
 
 enum MessageClasses : uint8_t {
-	MESSAGE_STATUS_CONSOLE_BLUE = 4, /*FIXME Blue message in the console*/
+	MESSAGE_STATUS_CONSOLE_RED = 18, /*Red message in the console*/
+	MESSAGE_EVENT_ORANGE = 19, /*Orange message in the console*/
+	MESSAGE_STATUS_CONSOLE_ORANGE = 20,  /*Orange message in the console*/
+	MESSAGE_STATUS_WARNING = 21, /*Red message in game window and in the console*/
+	MESSAGE_EVENT_ADVANCE = 22, /*White message in game window and in the console*/
+	MESSAGE_EVENT_DEFAULT = 23, /*White message at the bottom of the game window and in the console*/
+	MESSAGE_STATUS_DEFAULT = 24, /*White message at the bottom of the game window and in the console*/
+	MESSAGE_INFO_DESCR = 25, /*Green message in game window and in the console*/
+	MESSAGE_STATUS_SMALL = 26, /*White message at the bottom of the game window"*/
+	MESSAGE_STATUS_CONSOLE_BLUE = 27, /*FIXME Blue message in the console*/
 
-	MESSAGE_STATUS_CONSOLE_RED = 12, /*Red message in the console*/
-
-	MESSAGE_STATUS_DEFAULT = 16, /*White message at the bottom of the game window and in the console*/
-	MESSAGE_STATUS_WARNING = 17, /*Red message in game window and in the console*/
-	MESSAGE_EVENT_ADVANCE = 18, /*White message in game window and in the console*/
-
-	MESSAGE_STATUS_SMALL = 19, /*White message at the bottom of the game window"*/
-	MESSAGE_INFO_DESCR = 20, /*Green message in game window and in the console*/
-	MESSAGE_DAMAGE_DEALT = 21,
-	MESSAGE_DAMAGE_RECEIVED = 22,
-	MESSAGE_HEALED = 23,
-	MESSAGE_EXPERIENCE = 24,
-	MESSAGE_DAMAGE_OTHERS = 25,
-	MESSAGE_HEALED_OTHERS = 26,
-	MESSAGE_EXPERIENCE_OTHERS = 27,
-	MESSAGE_EVENT_DEFAULT = 28, /*White message at the bottom of the game window and in the console*/
-
-	MESSAGE_EVENT_ORANGE = 34, /*Orange message in the console*/
-	MESSAGE_STATUS_CONSOLE_ORANGE = 35,  /*Orange message in the console*/
+	MESSAGE_DAMAGE_DEALT = MESSAGE_STATUS_DEFAULT,
+	MESSAGE_DAMAGE_RECEIVED = MESSAGE_STATUS_DEFAULT,
+	MESSAGE_HEALED = MESSAGE_STATUS_DEFAULT,
+	MESSAGE_EXPERIENCE = MESSAGE_STATUS_DEFAULT,
+	MESSAGE_DAMAGE_OTHERS = MESSAGE_STATUS_DEFAULT,
+	MESSAGE_HEALED_OTHERS = MESSAGE_STATUS_DEFAULT,
+	MESSAGE_EXPERIENCE_OTHERS = MESSAGE_STATUS_DEFAULT,
 };
 
 enum FluidColors_t : uint8_t {
@@ -348,7 +345,6 @@ enum Icons_t {
 	ICON_PARTY_BUFF = 1 << 12,
 	ICON_REDSWORDS = 1 << 13,
 	ICON_PIGEON = 1 << 14,
-	ICON_BLEEDING = 1 << 15,
 };
 
 enum WeaponType_t : uint8_t {
@@ -394,7 +390,6 @@ enum Skulls_t : uint8_t {
 	SKULL_WHITE = 3,
 	SKULL_RED = 4,
 	SKULL_BLACK = 5,
-	SKULL_ORANGE = 6,
 };
 
 enum PartyShields_t : uint8_t {
@@ -521,10 +516,6 @@ enum PlayerFlags : uint64_t {
 //[1000 - 1500]
 #define PSTRG_OUTFITS_RANGE_START   (PSTRG_RESERVED_RANGE_START + 1000)
 #define PSTRG_OUTFITS_RANGE_SIZE    500
-//[2001 - 2011]
-#define PSTRG_MOUNTS_RANGE_START   (PSTRG_RESERVED_RANGE_START + 2001)
-#define PSTRG_MOUNTS_RANGE_SIZE    10
-#define PSTRG_MOUNTS_CURRENTMOUNT (PSTRG_MOUNTS_RANGE_START + 10)
 
 #define IS_IN_KEYRANGE(key, range) (key >= PSTRG_##range##_START && ((key - PSTRG_##range##_START) <= PSTRG_##range##_SIZE))
 

@@ -3,6 +3,7 @@
 	<health now="80" max="80"/>
 	<look type="61" corpse="6002"/>
 	<targetchange interval="5000" chance="0"/>
+	<strategy attack="0" defense="100"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -24,7 +25,14 @@
 		</defense>
 	</defenses>
 	<immunities>
+		<immunity physical="0"/>
+		<immunity energy="0"/>
 		<immunity fire="1"/>
+		<immunity poison="0"/>
+		<immunity lifedrain="0"/>
+		<immunity paralyze="0"/>
+		<immunity outfit="0"/>
+		<immunity drunk="0"/>
 		<immunity invisible="1"/>
 	</immunities>
 	<voices interval="5000" chance="10">
@@ -65,10 +73,13 @@
 		<item id="2674" countmax="3" chance="700"/><!-- apple -->
 		<item id="2695" countmax="2" chance="5000"/><!-- egg -->
 		<item id="2688" countmax="3" chance="5000"/><!-- candy cane -->
+		<item id="6394" chance="5000"/><!-- cream cake -->
 		<item id="2072" chance="5000"/><!-- lute -->
 		<item id="2260" chance="5000"/><!-- blank rune -->
 		<item id="2163" chance="4000"/><!-- magic light wand -->
 		<item id="1852" chance="4000"/><!-- landscape picture -->
+		<item id="1988" chance="100000"><!-- backpack -->
+			
 		<item id="2172" chance="4000"/><!-- bronze amulet -->
 		<item id="1949" chance="4000"/><!-- scroll -->
 		<item id="6501" countmax="2" chance="4000"/><!-- gingerbread man -->
@@ -92,9 +103,11 @@
 		<item id="2102" chance="500"/><!-- flower bowl -->
 		<item id="4839" chance="500"/><!-- bottle -->
 		<item id="2159" countmax="2" chance="500"/><!-- scarab coin -->
-		<item id="5022" countmax="2" chance="500"/><!-- orichalcum pearl -->
+		<item id="5022" countmax="2" chance="500"/><!-- orichalcum pearl  -->
 		<item id="2160" chance="250"/><!-- crystal coin -->
 		<item id="7731" chance="250"/><!-- elvenhair rope -->
 		<item id="2534" chance="250"/><!-- vampire shield -->
+				
+		</item>
 	</loot>
 </monster>

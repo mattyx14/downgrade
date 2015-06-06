@@ -34,7 +34,6 @@
 #include "guild.h"
 #include "groups.h"
 #include "town.h"
-#include "mounts.h"
 
 class House;
 class NetworkMessage;
@@ -162,17 +161,6 @@ class Player final : public Creature, public Cylinder
 		CreatureType_t getType() const final {
 			return CREATURETYPE_PLAYER;
 		}
-
-		uint8_t getCurrentMount() const;
-		void setCurrentMount(uint8_t mountId);
-		bool isMounted() const {
-			return defaultOutfit.lookMount != 0;
-		}
-		bool toggleMount(bool mount);
-		bool tameMount(uint8_t mountId);
-		bool untameMount(uint8_t mountId);
-		bool hasMount(const Mount* mount) const;
-		void dismount();
 
 		void sendFYIBox(const std::string& message) {
 			if (client) {
@@ -493,7 +481,7 @@ class Player final : public Creature, public Cylinder
 			return RACE_BLOOD;
 		}
 
-		uint64_t getMoney() const;
+		uint32_t getMoney() const;
 
 		//safe-trade functions
 		void setTradeState(tradestate_t state) {
@@ -545,7 +533,7 @@ class Player final : public Creature, public Cylinder
 		void onWalkComplete() final;
 
 		void stopWalk();
-		void openShopWindow(Npc* npc, const std::list<ShopInfo>& shop);
+		void openShopWindow(const std::list<ShopInfo>& shop);
 		bool closeShopWindow(bool sendCloseShopWindow = true);
 		bool updateSaleShopList(const Item* item);
 		bool hasShopItemForSale(uint32_t itemId, uint8_t subType) const;
@@ -793,14 +781,9 @@ class Player final : public Creature, public Cylinder
 				client->sendCreatureHelpers(creatureId, helpers);
 			}
 		}
-		void sendSpellCooldown(uint8_t spellId, uint32_t time) {
+		void sendAnimatedText(const std::string& message, const Position& pos, TextColor_t color) {
 			if (client) {
-				client->sendSpellCooldown(spellId, time);
-			}
-		}
-		void sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time) {
-			if (client) {
-				client->sendSpellGroupCooldown(groupId, time);
+				client->sendAnimatedText(message, pos, color);
 			}
 		}
 
@@ -933,9 +916,9 @@ class Player final : public Creature, public Cylinder
 				client->sendToChannel(creature, type, text, channelId);
 			}
 		}
-		void sendShop(Npc* npc) const {
+		void sendShop() const {
 			if (client) {
-				client->sendShop(npc, shopItemList);
+				client->sendShop(shopItemList);
 			}
 		}
 		void sendSaleItemList() const {
@@ -1132,7 +1115,6 @@ class Player final : public Creature, public Cylinder
 		int64_t skullTicks;
 		int64_t lastQuestlogUpdate;
 		int64_t lastWalkthroughAttempt;
-		int64_t lastToggleMount;
 		int64_t lastPing;
 		int64_t lastPong;
 		int64_t nextAction;
@@ -1198,7 +1180,6 @@ class Player final : public Creature, public Cylinder
 		AccountType_t accountType;
 
 		bool secureMode;
-		bool wasMounted;
 		bool ghostMode;
 		bool pzLocked;
 		bool isConnecting;

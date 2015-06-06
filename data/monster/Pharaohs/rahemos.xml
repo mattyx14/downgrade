@@ -3,6 +3,7 @@
 	<health now="3700" max="3700"/>
 	<look type="87" corpse="6031"/>
 	<targetchange interval="5000" chance="8"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -47,14 +48,14 @@
 		</defense>
 	</defenses>
 	<elements>
+		<element icePercent="100"/>
+		<element earthPercent="100"/>
+		<element deathPercent="100"/>
 		<element firePercent="94"/>
 		<element energyPercent="92"/>
 		<element holyPercent="-25"/>
 	</elements>
 	<immunities>
-		<immunity ice="1"/>
-		<immunity earth="1"/>
-		<immunity death="1"/>
 		<immunity paralyze="1"/>
 		<immunity invisible="1"/>
 	</immunities>
@@ -76,6 +77,8 @@
 		<item id="2150" countmax="3" chance="7000"/><!-- small amethyst -->
 		<item id="2214" chance="7000"/><!-- ring of healing -->
 		<item id="7590" chance="7000"/><!-- great mana potion -->
+		<item id="1987" chance="100000"><!-- bag -->
+			
 		<item id="2662" chance="300"/><!-- magician hat -->
 		<item id="2176" chance="500"/><!-- orb -->
 		<item id="2185" chance="500"/><!-- necrotic rod -->
@@ -83,5 +86,7 @@
 		<item id="2184" chance="500"/><!-- crystal wand -->
 		<item id="2447" chance="200"/><!-- twin axe -->
 		<item id="2348" chance="100000"/><!-- ancient rune -->
+			
+		</item>
 	</loot>
 </monster>

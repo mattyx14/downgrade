@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <monster name="Man in the Cave" nameDescription="man in the cave" race="blood" experience="555" speed="210" manacost="0">
 	<health now="485" max="485"/>
-	<look type="128" head="95" body="116" legs="95" feet="114" addons="2" corpse="20446"/>
+	<look type="128" head="95" body="116" legs="95" feet="114" addons="2" corpse="6080"/>
 	<targetchange interval="5000" chance="8"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -27,8 +28,12 @@
 	</attacks>
 	<defenses armor="14" defense="10"/>
 	<immunities>
+		<immunity physical="0"/>
+		<immunity energy="0"/>
 		<immunity fire="1"/>
+		<immunity poison="0"/>
 		<immunity lifedrain="1"/>
+		<immunity paralyze="0"/>
 		<immunity outfit="1"/>
 		<immunity drunk="1"/>
 		<immunity invisible="1"/>
@@ -49,10 +54,14 @@
 		<item id="2120" chance="3333"/><!-- rope -->
 		<item id="2691" chance="4000"/><!-- brown bread -->
 		<item id="5913" chance="2000"/><!-- brown piece of cloth -->
-		<item id="7290" chance="4000"/><!-- shard -->
-		<item id="7463" chance="6666"/><!-- mammoth fur cape -->
-		<item id="7386" chance="6666"/><!-- mercenary sword -->
-		<item id="7458" chance="1000"/><!-- fur cap -->
-		<item id="2173" chance="500"/><!-- amulet of loss -->
+		<item id="1987" chance="100000"><!-- bag -->
+			
+				<item id="7290" chance="4000"/><!-- shard -->
+				<item id="7463" chance="6666"/><!-- mammoth fur cape -->
+				<item id="7386" chance="6666"/><!-- mercenary sword -->
+				<item id="7458" chance="1000"/><!-- fur cap -->
+				<item id="2173" chance="500"/><!-- amulet of loss -->
+			
+		</item>
 	</loot>
 </monster>

@@ -40,7 +40,6 @@
 #include "house.h"
 #include "waitlist.h"
 #include "quests.h"
-#include "mounts.h"
 #include "ban.h"
 #include "connection.h"
 #include "creatureevent.h"
@@ -512,10 +511,8 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0xCA: parseUpdateContainer(msg); break;
 		case 0xD2: addGameTask(&Game::playerRequestOutfit, player->getID()); break;
 		case 0xD3: parseSetOutfit(msg); break;
-		case 0xD4: parseToggleMount(msg); break;
 		case 0xDC: parseAddVip(msg); break;
 		case 0xDD: parseRemoveVip(msg); break;
-		case 0xDE: parseEditVip(msg); break;
 		case 0xE6: parseBugReport(msg); break;
 		case 0xE7: /* thank you */ break;
 		case 0xE8: parseDebugAssert(msg); break;
@@ -525,7 +522,7 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0xF3: /* get object info */ break;
 
 		default:
-			// std::cout << "Player: " << player->getName() << " sent an unknown packet header: 0x" << std::hex << static_cast<uint16_t>(recvbyte) << std::dec << "!" << std::endl;
+			std::cout << "Player: " << player->getName() << " sent an unknown packet header: 0x" << std::hex << static_cast<uint16_t>(recvbyte) << std::dec << "!" << std::endl;
 			break;
 	}
 
@@ -788,14 +785,7 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookLegs = msg.getByte();
 	newOutfit.lookFeet = msg.getByte();
 	newOutfit.lookAddons = msg.getByte();
-	newOutfit.lookMount = msg.get<uint16_t>();
 	addGameTask(&Game::playerChangeOutfit, player->getID(), newOutfit);
-}
-
-void ProtocolGame::parseToggleMount(NetworkMessage& msg)
-{
-	bool mount = msg.getByte() != 0;
-	addGameTask(&Game::playerToggleMount, player->getID(), mount);
 }
 
 void ProtocolGame::parseUseItem(NetworkMessage& msg)
@@ -852,7 +842,7 @@ void ProtocolGame::parseThrow(NetworkMessage& msg)
 	uint8_t fromStackpos = msg.getByte();
 	Position toPos = msg.getPosition();
 	uint8_t count = msg.getByte();
-
+	
 	if (toPos != fromPos) {
 		addGameTaskTimed(DISPATCHER_TASK_EXPIRATION, &Game::playerMoveThing, player->getID(), fromPos, spriteId, fromStackpos, toPos, count);
 	}
@@ -1010,15 +1000,6 @@ void ProtocolGame::parseRemoveVip(NetworkMessage& msg)
 {
 	uint32_t guid = msg.get<uint32_t>();
 	addGameTask(&Game::playerRequestRemoveVip, player->getID(), guid);
-}
-
-void ProtocolGame::parseEditVip(NetworkMessage& msg)
-{
-	uint32_t guid = msg.get<uint32_t>();
-	const std::string description = msg.getString();
-	uint32_t icon = std::min<uint32_t>(10, msg.get<uint32_t>()); // 10 is max icon in 9.63
-	bool notify = msg.getByte() != 0;
-	addGameTask(&Game::playerRequestEditVip, player->getID(), guid, description, icon, notify);
 }
 
 void ProtocolGame::parseRotateItem(NetworkMessage& msg)
@@ -1181,20 +1162,20 @@ void ProtocolGame::sendCreatureSkull(const Creature* creature)
 
 void ProtocolGame::sendCreatureType(uint32_t creatureId, uint8_t creatureType)
 {
-	NetworkMessage msg;
+/*	NetworkMessage msg;
 	msg.addByte(0x95);
 	msg.add<uint32_t>(creatureId);
 	msg.addByte(creatureType);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg);*/
 }
 
 void ProtocolGame::sendCreatureHelpers(uint32_t creatureId, uint16_t helpers)
 {
-	NetworkMessage msg;
+/*	NetworkMessage msg;
 	msg.addByte(0x94);
 	msg.add<uint32_t>(creatureId);
 	msg.add<uint16_t>(helpers);
-	writeToOutputBuffer(msg);
+	writeToOutputBuffer(msg);*/
 }
 
 void ProtocolGame::sendCreatureSquare(const Creature* creature, SquareColor_t color)
@@ -1206,7 +1187,6 @@ void ProtocolGame::sendCreatureSquare(const Creature* creature, SquareColor_t co
 	NetworkMessage msg;
 	msg.addByte(0x86);
 	msg.add<uint32_t>(creature->getID());
-	msg.addByte(0x01);
 	msg.addByte(color);
 	writeToOutputBuffer(msg);
 }
@@ -1249,30 +1229,6 @@ void ProtocolGame::sendTextMessage(const TextMessage& message)
 	NetworkMessage msg;
 	msg.addByte(0xB4);
 	msg.addByte(message.type);
-	switch (message.type) {
-		case MESSAGE_DAMAGE_DEALT:
-		case MESSAGE_DAMAGE_RECEIVED:
-		case MESSAGE_DAMAGE_OTHERS: {
-			msg.addPosition(message.position);
-			msg.add<uint32_t>(message.primary.value);
-			msg.addByte(message.primary.color);
-			msg.add<uint32_t>(message.secondary.value);
-			msg.addByte(message.secondary.color);
-			break;
-		}
-		case MESSAGE_HEALED:
-		case MESSAGE_HEALED_OTHERS:
-		case MESSAGE_EXPERIENCE:
-		case MESSAGE_EXPERIENCE_OTHERS: {
-			msg.addPosition(message.position);
-			msg.add<uint32_t>(message.primary.value);
-			msg.addByte(message.primary.color);
-			break;
-		}
-		default: {
-			break;
-		}
-	}
 	msg.addString(message.text);
 	writeToOutputBuffer(msg);
 }
@@ -1291,9 +1247,9 @@ void ProtocolGame::sendCreatePrivateChannel(uint16_t channelId, const std::strin
 	msg.addByte(0xB2);
 	msg.add<uint16_t>(channelId);
 	msg.addString(channelName);
-	msg.add<uint16_t>(0x01);
+/*	msg.add<uint16_t>(0x01);
 	msg.addString(player->getName());
-	msg.add<uint16_t>(0x00);
+	msg.add<uint16_t>(0x00);*/
 	writeToOutputBuffer(msg);
 }
 
@@ -1384,14 +1340,13 @@ void ProtocolGame::sendContainer(uint8_t cid, const Container* container, bool h
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendShop(Npc* npc, const ShopInfoList& itemList)
+void ProtocolGame::sendShop(const ShopInfoList& itemList)
 {
 	NetworkMessage msg;
 	msg.addByte(0x7A);
-	msg.addString(npc->getName());
 
 	uint16_t itemsToSend = std::min<size_t>(itemList.size(), std::numeric_limits<uint16_t>::max());
-	msg.add<uint16_t>(itemsToSend);
+	msg.addByte(itemsToSend);
 
 	uint16_t i = 0;
 	for (ShopInfoList::const_iterator it = itemList.begin(); i < itemsToSend; ++it, ++i) {
@@ -1412,7 +1367,7 @@ void ProtocolGame::sendSaleItemList(const std::list<ShopInfo>& shop)
 {
 	NetworkMessage msg;
 	msg.addByte(0x7B);
-	msg.add<uint64_t>(player->getMoney());
+	msg.add<uint32_t>(player->getMoney());
 
 	std::map<uint16_t, uint32_t> saleMap;
 
@@ -2101,11 +2056,6 @@ void ProtocolGame::sendOutfitWindow()
 	msg.addByte(0xC8);
 
 	Outfit_t currentOutfit = player->getDefaultOutfit();
-	Mount* currentMount = g_game.mounts.getMountByID(player->getCurrentMount());
-	if (currentMount) {
-		currentOutfit.lookMount = currentMount->clientId;
-	}
-
 	AddOutfit(msg, currentOutfit);
 
 	std::vector<ProtocolOutfit> protocolOutfits;
@@ -2143,19 +2093,6 @@ void ProtocolGame::sendOutfitWindow()
 		msg.addByte(outfit.addons);
 	}
 
-	std::vector<const Mount*> mounts;
-	for (const Mount& mount : g_game.mounts.getMounts()) {
-		if (player->hasMount(&mount)) {
-			mounts.push_back(&mount);
-		}
-	}
-
-	msg.addByte(mounts.size());
-	for (const Mount* mount : mounts) {
-		msg.add<uint16_t>(mount->clientId);
-		msg.addString(mount->name);
-	}
-
 	writeToOutputBuffer(msg);
 }
 
@@ -2164,7 +2101,7 @@ void ProtocolGame::sendUpdatedVIPStatus(uint32_t guid, VipStatus_t newStatus)
 	NetworkMessage msg;
 	msg.addByte(0xD3);
 	msg.add<uint32_t>(guid);
-	msg.addByte(newStatus);
+	//msg.addByte(newStatus);
 	writeToOutputBuffer(msg);
 }
 
@@ -2174,28 +2111,17 @@ void ProtocolGame::sendVIP(uint32_t guid, const std::string& name, const std::st
 	msg.addByte(0xD2);
 	msg.add<uint32_t>(guid);
 	msg.addString(name);
-	msg.addString(description);
-	msg.add<uint32_t>(std::min<uint32_t>(10, icon));
 	msg.addByte(notify ? 0x01 : 0x00);
-	msg.addByte(status);
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendSpellCooldown(uint8_t spellId, uint32_t time)
+void ProtocolGame::sendAnimatedText(const std::string& message, const Position& pos, TextColor_t color)
 {
 	NetworkMessage msg;
-	msg.addByte(0xA4);
-	msg.addByte(spellId);
-	msg.add<uint32_t>(time);
-	writeToOutputBuffer(msg);
-}
-
-void ProtocolGame::sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time)
-{
-	NetworkMessage msg;
-	msg.addByte(0xA5);
-	msg.addByte(groupId);
-	msg.add<uint32_t>(time);
+	msg.addByte(0x84);
+	msg.addPosition(pos);
+	msg.addByte(color);
+	msg.addString(message);
 	writeToOutputBuffer(msg);
 }
 
@@ -2255,7 +2181,11 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 
 	msg.add<uint32_t>(player->getFreeCapacity());
 
-	msg.add<uint64_t>(player->getExperience());
+	uint64_t experience = player->getExperience();
+	if(experience > 0x7FFFFFFF)
+		msg.add<uint32_t>(0x7FFFFFFF);
+	else
+		msg.add<uint32_t>(experience);
 
 	msg.add<uint16_t>(player->getLevel());
 	msg.addByte(player->getPlayerInfo(PLAYERINFO_LEVELPERCENT));
@@ -2294,8 +2224,6 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 	} else {
 		msg.addItemId(outfit.lookTypeEx);
 	}
-
-	msg.add<uint16_t>(outfit.lookMount);
 }
 
 void ProtocolGame::AddWorldLight(NetworkMessage& msg, const LightInfo& lightInfo)

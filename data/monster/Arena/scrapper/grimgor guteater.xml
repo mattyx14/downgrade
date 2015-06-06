@@ -2,6 +2,7 @@
 <monster name="Grimgor Guteater" nameDescription="grimgor guteater" race="blood" experience="670" speed="240" manacost="0">
 	<health now="1115" max="1115"/>
 	<look type="2" corpse="7349"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -20,12 +21,11 @@
 	</attacks>
 	<defenses armor="45" defense="45"/>
 	<elements>
+		<element firePercent="100"/>
 		<element energyPercent="20"/>
 		<element deathPercent="-10"/>
-		<element earthPercent="-10"/>
 	</elements>
 	<immunities>
-		<immunity fire="1"/>
 		<immunity outfit="1"/>
 		<immunity drunk="1"/>
 		<immunity invisible="1"/>

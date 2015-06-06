@@ -2,6 +2,7 @@
 <monster name="Deathbringer" nameDescription="deathbringer" race="undead" experience="5100" speed="300" manacost="0">
 	<health now="10000" max="10000"/>
 	<look type="231" corpse="7349"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -33,14 +34,11 @@
 	</attacks>
 	<defenses armor="15" defense="15"/>
 	<elements>
-		<element energyPercent="10"/>
-		<element holyPercent="-15"/>
+		<element deathPercent="100"/>
+		<element firePercent="65"/>
+		<element energyPercent="-20"/>
 	</elements>
 	<immunities>
-		<immunity death="1"/>
-		<immunity fire="1"/>
-		<immunity ice="1"/>
-		<immunity earth="1"/>
 		<immunity outfit="1"/>
 		<immunity drunk="1"/>
 		<immunity invisible="1"/>

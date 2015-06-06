@@ -3,6 +3,7 @@
 	<health now="2000" max="2000"/>
 	<look type="99" head="95" body="116" legs="119" feet="115" corpse="6028"/>
 	<targetchange interval="5000" chance="8"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -65,12 +66,14 @@
 		<item id="2171" chance="1666"/>
 		<item id="2656" chance="709"/>
 		<item id="7893" chance="688"/>
-		<item id="2535" chance="588"/>
-		<item id="2165" chance="888"/>
-		<item id="2237" chance="10000"/>
-		<item id="2148" countmax="12" chance1="80000" chancemax="0"/>
-		<item id="2175" chance="10000"/>
-		<item id="2179" chance="900"/>
-		<item id="3961" chance="1000"/>
+		<item id="1987" chance="100000">
+			<item id="2535" chance="588"/>
+			<item id="2165" chance="888"/>
+			<item id="2237" chance="10000"/>
+			<item id="2148" countmax="12" chance1="80000" chancemax="0"/>
+			<item id="2175" chance="10000"/>
+			<item id="2179" chance="900"/>
+			<item id="3961" chance="1000"/>
+		</item>
 	</loot>
 </monster>

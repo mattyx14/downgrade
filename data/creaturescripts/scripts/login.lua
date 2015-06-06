@@ -30,7 +30,9 @@ function onLogin(player)
 	end
 
 	-- Events
-	player:registerEvent("PlayerDeath")
-	player:registerEvent("DropLoot")
+	local events = {"PlayerDeath", "DropLoot"}
+	for i = 1, #events do
+		player:registerEvent(events[i])
+	end
 	return true
 end

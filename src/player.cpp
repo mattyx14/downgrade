@@ -127,9 +127,6 @@ Player::Player(ProtocolGame* p) :
 
 	lastFailedFollow = 0;
 	lastWalkthroughAttempt = 0;
-	lastToggleMount = 0;
-
-	wasMounted = false;
 
 	sex = PLAYERSEX_FEMALE;
 
@@ -732,8 +729,6 @@ void Player::addStorageValue(const uint32_t key, const int32_t value, const bool
 				value & 0xFF
 			);
 			return;
-		} else if (IS_IN_KEYRANGE(key, MOUNTS_RANGE)) {
-			// do nothing
 		} else {
 			std::cout << "Warning: unknown reserved key: " << key << " player: " << getName() << std::endl;
 			return;
@@ -1169,17 +1164,6 @@ void Player::onChangeZone(ZoneType_t zone)
 			setAttackedCreature(nullptr);
 			onAttackedCreatureDisappear(false);
 		}
-
-		if (!group->access && isMounted()) {
-			dismount();
-			g_game.internalCreatureChangeOutfit(this, defaultOutfit);
-			wasMounted = true;
-		}
-	} else {
-		if (wasMounted) {
-			toggleMount(true);
-			wasMounted = false;
-		}
 	}
 
 	g_game.updateCreatureWalkthrough(this);
@@ -1262,10 +1246,10 @@ void Player::onRemoveCreature(Creature* creature, bool isLogout)
 	}
 }
 
-void Player::openShopWindow(Npc* npc, const std::list<ShopInfo>& shop)
+void Player::openShopWindow(const std::list<ShopInfo>& shop)
 {
 	shopItemList = shop;
-	sendShop(npc);
+	sendShop();
 	sendSaleItemList();
 }
 
@@ -1662,6 +1646,10 @@ void Player::addExperience(Creature* source, uint64_t exp, bool sendText/* = fal
 		message.primary.color = TEXTCOLOR_WHITE_EXP;
 		sendTextMessage(message);
 
+		std::ostringstream ss;
+		ss << exp;
+		sendAnimatedText(ss.str(), _position, TEXTCOLOR_WHITE_EXP);
+
 		SpectatorVec list;
 		g_game.map.getSpectators(list, _position, false, true);
 		list.erase(this);
@@ -1744,6 +1732,10 @@ void Player::removeExperience(uint64_t exp, bool sendText/* = false*/)
 		message.primary.value = lostExp;
 		message.primary.color = TEXTCOLOR_RED;
 		sendTextMessage(message);
+
+		std::ostringstream ss;
+		ss << exp;
+		sendAnimatedText(ss.str(), _position, TEXTCOLOR_RED);
 
 		SpectatorVec list;
 		g_game.map.getSpectators(list, _position, false, true);
@@ -3350,11 +3342,6 @@ void Player::updateItemsLight(bool internal /*=false*/)
 void Player::onAddCondition(ConditionType_t type)
 {
 	Creature::onAddCondition(type);
-
-	if (type == CONDITION_OUTFIT && isMounted()) {
-		dismount();
-	}
-
 	sendIcons();
 }
 
@@ -4104,161 +4091,6 @@ GuildEmblems_t Player::getGuildEmblem(const Player* player) const
 	return GUILDEMBLEM_NEUTRAL;
 }
 
-uint8_t Player::getCurrentMount() const
-{
-	int32_t value;
-	if (getStorageValue(PSTRG_MOUNTS_CURRENTMOUNT, value)) {
-		return value;
-	}
-	return 0;
-}
-
-void Player::setCurrentMount(uint8_t mount)
-{
-	addStorageValue(PSTRG_MOUNTS_CURRENTMOUNT, mount);
-}
-
-bool Player::toggleMount(bool mount)
-{
-	if ((OTSYS_TIME() - lastToggleMount) < 3000 && !wasMounted) {
-		sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
-		return false;
-	}
-
-	if (mount) {
-		if (isMounted()) {
-			return false;
-		}
-
-		if (!group->access && _tile->hasFlag(TILESTATE_PROTECTIONZONE)) {
-			sendCancelMessage(RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE);
-			return false;
-		}
-
-		uint8_t currentMountId = getCurrentMount();
-		if (currentMountId == 0) {
-			sendOutfitWindow();
-			return false;
-		}
-
-		Mount* currentMount = g_game.mounts.getMountByID(currentMountId);
-		if (!currentMount) {
-			return false;
-		}
-
-		if (!hasMount(currentMount)) {
-			setCurrentMount(0);
-			sendOutfitWindow();
-			return false;
-		}
-
-		if (currentMount->premium && !isPremium()) {
-			sendCancelMessage(RETURNVALUE_YOUNEEDPREMIUMACCOUNT);
-			return false;
-		}
-
-		if (hasCondition(CONDITION_OUTFIT)) {
-			sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
-			return false;
-		}
-
-		defaultOutfit.lookMount = currentMount->clientId;
-
-		if (currentMount->speed != 0) {
-			g_game.changeSpeed(this, currentMount->speed);
-		}
-	} else {
-		if (!isMounted()) {
-			return false;
-		}
-
-		dismount();
-	}
-
-	g_game.internalCreatureChangeOutfit(this, defaultOutfit);
-	lastToggleMount = OTSYS_TIME();
-	return true;
-}
-
-bool Player::tameMount(uint8_t mountId)
-{
-	if (!g_game.mounts.getMountByID(mountId)) {
-		return false;
-	}
-
-	const uint8_t tmpMountId = mountId - 1;
-	const uint32_t key = PSTRG_MOUNTS_RANGE_START + (tmpMountId / 31);
-
-	int32_t value;
-	if (getStorageValue(key, value)) {
-		value |= (1 << (tmpMountId % 31));
-	} else {
-		value = (1 << (tmpMountId % 31));
-	}
-
-	addStorageValue(key, value);
-	return true;
-}
-
-bool Player::untameMount(uint8_t mountId)
-{
-	if (!g_game.mounts.getMountByID(mountId)) {
-		return false;
-	}
-
-	const uint8_t tmpMountId = mountId - 1;
-	const uint32_t key = PSTRG_MOUNTS_RANGE_START + (tmpMountId / 31);
-
-	int32_t value;
-	if (!getStorageValue(key, value)) {
-		return true;
-	}
-
-	value &= ~(1 << (tmpMountId % 31));
-	addStorageValue(key, value);
-
-	if (getCurrentMount() == mountId) {
-		if (isMounted()) {
-			dismount();
-			g_game.internalCreatureChangeOutfit(this, defaultOutfit);
-		}
-
-		setCurrentMount(0);
-	}
-
-	return true;
-}
-
-bool Player::hasMount(const Mount* mount) const
-{
-	if (isAccessPlayer()) {
-		return true;
-	}
-
-	if (mount->premium && !isPremium()) {
-		return false;
-	}
-
-	const uint8_t tmpMountId = mount->id - 1;
-
-	int32_t value;
-	if (!getStorageValue(PSTRG_MOUNTS_RANGE_START + (tmpMountId / 31), value)) {
-		return false;
-	}
-
-	return ((1 << (tmpMountId % 31)) & value) != 0;
-}
-
-void Player::dismount()
-{
-	Mount* mount = g_game.mounts.getMountByID(getCurrentMount());
-	if (mount && mount->speed > 0) {
-		g_game.changeSpeed(this, -mount->speed);
-	}
-
-	defaultOutfit.lookMount = 0;
-}
-
 uint16_t Player::getHelpers() const
 {
 	uint16_t helpers;
@@ -4300,10 +4132,10 @@ void Player::sendClosePrivate(uint16_t channelId)
 	}
 }
 
-uint64_t Player::getMoney() const
+uint32_t Player::getMoney() const
 {
 	std::vector<const Container*> containers;
-	uint64_t moneyCount = 0;
+	uint32_t moneyCount = 0;
 
 	for (int32_t i = CONST_SLOT_FIRST; i <= CONST_SLOT_LAST; ++i) {
 		Item* item = inventory[i];

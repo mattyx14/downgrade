@@ -483,7 +483,6 @@ class Game
 
 		Groups groups;
 		Map map;
-		Mounts mounts;
 		Raids raids;
 		Quests quests;
 

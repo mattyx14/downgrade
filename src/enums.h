@@ -395,7 +395,6 @@ struct Outfit_t {
 	void reset() {
 		lookType = 0;
 		lookTypeEx = 0;
-		lookMount = 0;
 		lookHead = 0;
 		lookBody = 0;
 		lookLegs = 0;
@@ -405,7 +404,6 @@ struct Outfit_t {
 
 	uint16_t lookType;
 	uint16_t lookTypeEx;
-	uint16_t lookMount;
 	uint8_t lookHead;
 	uint8_t lookBody;
 	uint8_t lookLegs;

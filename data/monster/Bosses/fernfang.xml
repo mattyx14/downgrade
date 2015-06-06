@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <monster name="Fernfang" nameDescription="Fernfang" race="blood" experience="400" speed="240" manacost="0">
 	<health now="400" max="400"/>
-	<look type="206" corpse="20566"/>
+	<look type="206" corpse="6080"/>
 	<targetchange interval="5000" chance="8"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -65,9 +66,13 @@
 		<item id="2467" chance="10000"/><!-- leather armor -->
 		<item id="2642" chance="6666"/><!-- sandals -->
 		<item id="3976" countmax="10" chance="50000"/><!-- worm -->
-		<item id="2044" chance="6666"/><!-- lamp -->
-		<item id="2689" countmax="3" chance="20000"/><!-- bread -->
-		<item id="2401" chance="3333"/><!-- staff -->
-		<item id="2166" chance="1428"/><!-- power ring -->
+		<item id="1987" chance="100000"><!-- bag -->
+			
+				<item id="2044" chance="6666"/><!-- lamp -->
+				<item id="2689" countmax="3" chance="20000"/><!-- bread -->
+				<item id="2401" chance="3333"/><!-- staff -->
+				<item id="2166" chance="1428"/><!-- power ring -->
+			
+		</item>
 	</loot>
 </monster>

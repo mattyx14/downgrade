@@ -2,6 +2,7 @@
 <monster name="Webster" nameDescription="a webster" race="undead" experience="1200" speed="290" manacost="0">
 	<health now="1750" max="1750"/>
 	<look type="263" corpse="7349"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -27,10 +28,10 @@
 		</defense>
 	</defenses>
 	<elements>
-		<element energyPercent="-20"/>
+		<element icePercent="100"/>
+		<element energyPercent="-13"/>
 	</elements>
 	<immunities>
-		<immunity ice="1"/>
 		<immunity outfit="1"/>
 		<immunity drunk="1"/>
 		<immunity invisible="1"/>

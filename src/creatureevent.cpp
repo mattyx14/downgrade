@@ -192,7 +192,7 @@ bool CreatureEvent::configureEvent(const pugi::xml_node& node)
 	} else {
 		std::cout << "[Error - CreatureEvent::configureEvent] Invalid type for creature event: " << m_eventName << std::endl;
 		return false;
-	}
+		}
 
 	m_isLoaded = true;
 	return true;
@@ -407,12 +407,12 @@ bool CreatureEvent::executeAdvance(Player* player, skills_t skill, uint32_t oldL
 	return m_scriptInterface->callFunction(4);
 }
 
-bool CreatureEvent::executeOnKill(Creature* creature, Creature* target)
+void CreatureEvent::executeOnKill(Creature* creature, Creature* target)
 {
 	//onKill(creature, target)
 	if (!m_scriptInterface->reserveScriptEnv()) {
 		std::cout << "[Error - CreatureEvent::executeOnKill] Call stack overflow" << std::endl;
-		return false;
+		return;
 	}
 
 	ScriptEnvironment* env = m_scriptInterface->getScriptEnv();
@@ -425,7 +425,7 @@ bool CreatureEvent::executeOnKill(Creature* creature, Creature* target)
 	LuaScriptInterface::setCreatureMetatable(L, -1, creature);
 	LuaScriptInterface::pushUserdata<Creature>(L, target);
 	LuaScriptInterface::setCreatureMetatable(L, -1, target);
-	return m_scriptInterface->callFunction(2);
+	m_scriptInterface->callVoidFunction(2);
 }
 
 bool CreatureEvent::executeTextEdit(Player* player, Item* item, const std::string& text)

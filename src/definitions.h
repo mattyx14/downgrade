@@ -24,9 +24,9 @@
 #define STATUS_SERVER_VERSION "1.2"
 #define STATUS_SERVER_DEVELOPERS "Mark Samman"
 
-#define CLIENT_VERSION_MIN 870
-#define CLIENT_VERSION_MAX 870
-#define CLIENT_VERSION_STR "8.7"
+#define CLIENT_VERSION_MIN 860
+#define CLIENT_VERSION_MAX 860
+#define CLIENT_VERSION_STR "8.6"
 
 #ifndef __FUNCTION__
 #define __FUNCTION__ __func__
@@ -56,12 +56,13 @@
 #define HAS_ITERATOR_DEBUGGING 0
 #endif
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #pragma warning(disable:4127) // conditional expression is constant
 #pragma warning(disable:4244) // 'argument' : conversion from 'type1' to 'type2', possible loss of data
 #pragma warning(disable:4250) // 'class1' : inherits 'class2::member' via dominance
 #pragma warning(disable:4267) // 'var' : conversion from 'size_t' to 'type', possible loss of data
 #pragma warning(disable:4351) // new behavior: elements of array will be default initialized
-#pragma warning(disable:4996)
 #endif
 
 #define strcasecmp _stricmp

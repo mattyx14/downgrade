@@ -132,8 +132,6 @@ class ProtocolGame final : public Protocol
 		void parsePassPartyLeadership(NetworkMessage& msg);
 		void parseEnableSharedPartyExperience(NetworkMessage& msg);
 
-		void parseToggleMount(NetworkMessage& msg);
-
 		//trade methods
 		void parseRequestTrade(NetworkMessage& msg);
 		void parseLookInTrade(NetworkMessage& msg);
@@ -141,7 +139,6 @@ class ProtocolGame final : public Protocol
 		//VIP methods
 		void parseAddVip(NetworkMessage& msg);
 		void parseRemoveVip(NetworkMessage& msg);
-		void parseEditVip(NetworkMessage& msg);
 
 		void parseRotateItem(NetworkMessage& msg);
 
@@ -194,7 +191,7 @@ class ProtocolGame final : public Protocol
 		void sendCreatureType(uint32_t creatureId, uint8_t creatureType);
 		void sendCreatureHelpers(uint32_t creatureId, uint16_t helpers);
 
-		void sendShop(Npc* npc, const ShopInfoList& itemList);
+		void sendShop(const ShopInfoList& itemList);
 		void sendCloseShop();
 		void sendSaleItemList(const std::list<ShopInfo>& shop);
 		void sendTradeItemRequest(const Player* player, const Item* item, bool ack);
@@ -214,9 +211,6 @@ class ProtocolGame final : public Protocol
 		void sendWorldLight(const LightInfo& lightInfo);
 
 		void sendCreatureSquare(const Creature* creature, SquareColor_t color);
-
-		void sendSpellCooldown(uint8_t spellId, uint32_t time);
-		void sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time);
 
 		//tiles
 		void sendMapDescription(const Position& pos);
@@ -240,6 +234,9 @@ class ProtocolGame final : public Protocol
 
 		//inventory
 		void sendInventoryItem(slots_t slot, const Item* item);
+
+		//messages
+		void sendAnimatedText(const std::string& message, const Position& pos, TextColor_t color);
 
 		//Help functions
 

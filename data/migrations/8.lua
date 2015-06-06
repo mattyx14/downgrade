@@ -2,9 +2,6 @@ function onUpdateDatabase()
 	print("> Updating database to version 9 (global inbox)")
 	db.query("CREATE TABLE IF NOT EXISTS `player_inboxitems` (`player_id` int(11) NOT NULL, `sid` int(11) NOT NULL, `pid` int(11) NOT NULL DEFAULT '0', `itemtype` smallint(6) NOT NULL, `count` smallint(5) NOT NULL DEFAULT '0', `attributes` blob NOT NULL, UNIQUE KEY `player_id_2` (`player_id`,`sid`), KEY `player_id` (`player_id`), FOREIGN KEY (`player_id`) REFERENCES `players`(`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=latin1")
 
-	-- Delete "market" item
-	db.query("DELETE FROM `player_depotitems` WHERE `itemtype` = 14405")
-
 	-- Move up items in depot chests
 	local resultId = db.storeQuery("SELECT `player_id`, `pid`, (SELECT `dp2`.`sid` FROM `player_depotitems` AS `dp2` WHERE `dp2`.`player_id` = `dp1`.`player_id` AND `dp2`.`pid` = `dp1`.`sid` AND `itemtype` = 2594) AS `sid` FROM `player_depotitems` AS `dp1` WHERE `itemtype` = 2589")
 	if resultId ~= false then
@@ -64,7 +61,5 @@ function onUpdateDatabase()
 		result.free(resultId)
 	end
 
-	-- Delete the inboxes
-	db.query("DELETE FROM `player_depotitems` WHERE `itemtype` = 14404")
 	return true
 end

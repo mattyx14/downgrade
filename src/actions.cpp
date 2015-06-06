@@ -302,6 +302,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 		}
 
 		if (bed->trySleep(player)) {
+			bed->sleep(player);
 			player->setBedItem(bed);
 		}
 

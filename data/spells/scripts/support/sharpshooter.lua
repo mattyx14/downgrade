@@ -14,16 +14,6 @@ speed:setParameter(CONDITION_PARAM_TICKS, 10000)
 speed:setFormula(-0.7, 56, -0.7, 56)
 combat:setCondition(speed)
 
-local exhaustHealGroup = Condition(CONDITION_SPELLGROUPCOOLDOWN)
-exhaustHealGroup:setParameter(CONDITION_PARAM_SUBID, 2)
-exhaustHealGroup:setParameter(CONDITION_PARAM_TICKS, 10000)
-combat:setCondition(exhaustHealGroup)
-
-local exhaustSupportGroup = Condition(CONDITION_SPELLGROUPCOOLDOWN)
-exhaustSupportGroup:setParameter(CONDITION_PARAM_SUBID, 3)
-exhaustSupportGroup:setParameter(CONDITION_PARAM_TICKS, 10000)
-combat:setCondition(exhaustSupportGroup)
-
 function onCastSpell(creature, var)
 	return combat:execute(creature, var)
 end

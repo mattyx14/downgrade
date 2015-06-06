@@ -3,6 +3,7 @@
 	<health now="200" max="200"/>
 	<look type="143" head="1" body="1" legs="1" feet="1" corpse="6080"/>
 	<targetchange interval="5000" chance="8"/>
+	<strategy attack="100" defense="0"/>
 	<flags>
 		<flag summonable="0"/>
 		<flag attackable="1"/>
@@ -31,8 +32,13 @@
 	</attacks>
 	<defenses armor="20" defense="25"/>
 	<immunities>
+		<immunity physical="0"/>
 		<immunity energy="1"/>
 		<immunity fire="1"/>
+		<immunity poison="0"/>
+		<immunity lifedrain="0"/>
+		<immunity paralyze="0"/>
+		<immunity outfit="0"/>
 		<immunity drunk="1"/>
 		<immunity invisible="1"/>
 	</immunities>
